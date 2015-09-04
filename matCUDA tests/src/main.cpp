@@ -362,7 +362,19 @@ init_unit_test_suite( int argc, char* argv[] )
 	ts1->add( BOOST_TEST_CASE( &test_QR_complex_2 ) );	
 	ts1->add( BOOST_TEST_CASE( &test_QR_complex_3 ) );
 
-	// UnitTest19.cpp
+	//// UnitTest19.cpp
+	ts1->add( BOOST_TEST_CASE( &test_rand_float_1 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_float_2 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_float_3 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_float_4 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_double_1 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_double_2 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_double_3 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_double_4 ) );
+	ts1->add( BOOST_TEST_CASE( &test_rand_complex_1 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_complex_2 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_complex_3 ) );	
+	ts1->add( BOOST_TEST_CASE( &test_rand_complex_4 ) );
 
 	// UnitTest20.cpp	
 	ts1->add( BOOST_TEST_CASE( &test_max_float_1 ) );

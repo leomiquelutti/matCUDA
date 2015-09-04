@@ -405,10 +405,16 @@ void test_QR_complex_3();
 // UnitTest19.cpp
 void test_rand_float_1();
 void test_rand_float_2();
+void test_rand_float_3();
+void test_rand_float_4();
 void test_rand_double_1();
 void test_rand_double_2();
+void test_rand_double_3();
+void test_rand_double_4();
 void test_rand_complex_1();
 void test_rand_complex_2();
+void test_rand_complex_3();
+void test_rand_complex_4();
 
 // UnitTest20.cpp
 void test_max_float_1();

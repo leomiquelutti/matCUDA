@@ -7,8 +7,7 @@ void test_rand_float_1()
 	Array<float> v2 = rand<float>( size );
 
 	Array<float> control( size );
-	for( int i = 0; i < size; i++ )
-		control( i ) = 0;
+	control = 0;
 
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -22,9 +21,8 @@ void test_rand_float_2()
 	Array<float> v1 = rand<float>( size, size );
 	Array<float> v2 = rand<float>( size, size );
 
-	Array<float> control( size );
-	for( int i = 0; i < size*size; i++ )
-		control( i ) = 0;
+	Array<float> control( size, size );
+	control = 0;
 	
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -39,8 +37,7 @@ void test_rand_float_3()
 	Array<float> v2 = rand<float>( size );
 
 	Array<float> control( size );
-	for( int i = 0; i < size; i++ )
-		control( i ) = 0;
+	control = 0;
 	
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -54,11 +51,8 @@ void test_rand_float_4()
 	Array<float> v1 = rand<float>( size, size );
 	Array<float> v2 = rand<float>( size, size );
 
-	Array<float> control( size );
-	for( int i = 0; i < size; i++ ) {
-		for( int j = 0; j < size; j++ )
-			control( i, i ) = 0;
-	}
+	Array<float> control( size, size );
+	control = 0;
 	
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -73,8 +67,7 @@ void test_rand_double_1()
 	Array<double> v2 = rand<double>( size );
 
 	Array<double> control( size );
-	for( int i = 0; i < size; i++ )
-		control( i ) = 0;
+	control = 0;
 
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -88,9 +81,8 @@ void test_rand_double_2()
 	Array<double> v1 = rand<double>( size, size );
 	Array<double> v2 = rand<double>( size, size );
 
-	Array<double> control( size );
-	for( int i = 0; i < size*size; i++ )
-		control( i ) = 0;
+	Array<double> control( size, size );
+	control = 0;
 	
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -105,8 +97,7 @@ void test_rand_double_3()
 	Array<double> v2 = rand<double>( size );
 
 	Array<double> control( size );
-	for( int i = 0; i < size; i++ )
-		control( i ) = 0;
+	control = 0;
 	
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -120,11 +111,8 @@ void test_rand_double_4()
 	Array<double> v1 = rand<double>( size, size );
 	Array<double> v2 = rand<double>( size, size );
 
-	Array<double> control( size );
-	for( int i = 0; i < size; i++ ) {
-		for( int j = 0; j < size; j++ )
-			control( i, i ) = 0;
-	}
+	Array<double> control( size, size );
+	control = 0;
 	
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -139,8 +127,7 @@ void test_rand_complex_1()
 	Array<Complex> v2 = rand<Complex>( size );
 
 	Array<Complex> control( size );
-	for( int i = 0; i < size; i++ )
-		control( i ) = 0;
+	control = 0;
 
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -154,9 +141,8 @@ void test_rand_complex_2()
 	Array<Complex> v1 = rand<Complex>( size, size );
 	Array<Complex> v2 = rand<Complex>( size, size );
 
-	Array<Complex> control( size );
-	for( int i = 0; i < size*size; i++ )
-		control( i ) = 0;
+	Array<Complex> control( size, size );
+	control = 0;
 	
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -171,8 +157,7 @@ void test_rand_complex_3()
 	Array<Complex> v2 = rand<Complex>( size );
 
 	Array<Complex> control( size );
-	for( int i = 0; i < size; i++ )
-		control( i ) = 0;
+	control = 0;
 	
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");
@@ -186,11 +171,8 @@ void test_rand_complex_4()
 	Array<Complex> v1 = rand<Complex>( size, size );
 	Array<Complex> v2 = rand<Complex>( size, size );
 
-	Array<Complex> control( size );
-	for( int i = 0; i < size; i++ ) {
-		for( int j = 0; j < size; j++ )
-			control( i, i ) = 0;
-	}
+	Array<Complex> control( size, size );
+	control = 0;
 	
 	if ( v1 - v2 == control )
 		BOOST_FAIL("");

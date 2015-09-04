@@ -1048,7 +1048,7 @@ namespace matCUDA
 	template Array<ComplexDouble>& Array<ComplexDouble>::operator = (Array<ComplexDouble> &a);
 
 	template <typename TElement>
-	Array<TElement>& Array<TElement>::operator = (TElement &a)
+	Array<TElement>& Array<TElement>::operator = (TElement a)
 	{ 
 		for( int i = 0; i < this->m_data.m_numElements; i++ )
 			this->m_data.m_data[i] = a;
@@ -1056,11 +1056,11 @@ namespace matCUDA
 		return *this;
 	}
 
-	template Array<int>& Array<int>::operator = (int &a);
-	template Array<float>& Array<float>::operator = (float &a);
-	template Array<double>& Array<double>::operator = (double &a);
-	template Array<ComplexFloat>& Array<ComplexFloat>::operator = (ComplexFloat &a);
-	template Array<ComplexDouble>& Array<ComplexDouble>::operator = (ComplexDouble &a);
+	//template Array<int>& Array<int>::operator = (int a);
+	template Array<float>& Array<float>::operator = (float a);
+	template Array<double>& Array<double>::operator = (double a);
+	template Array<ComplexFloat>& Array<ComplexFloat>::operator = (ComplexFloat a);
+	template Array<ComplexDouble>& Array<ComplexDouble>::operator = (ComplexDouble a);
 
 	template <typename TElement>
 	Array<TElement> Array<TElement>::operator - (Array<TElement> &a)
