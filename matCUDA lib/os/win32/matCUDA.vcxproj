@@ -19,9 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\inc\matCUDA.h" />
-  </ItemGroup>
-  <ItemGroup>
     <CudaCompile Include="..\..\src\array.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -31,6 +28,9 @@
     <ClCompile Include="..\..\src\curandOperations.cpp" />
     <ClCompile Include="..\..\src\cusolverOperations.cpp" />
     <ClCompile Include="..\..\src\global_func.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\inc\matCUDA.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{994A12B8-223F-4F8B-8BDF-B533DD93ECE1}</ProjectGuid>
@@ -80,7 +80,7 @@
     <LibraryPath>C:\local\boost_1_53_0\lib64-msvc-11.0;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>../../inc;C:\local\boost_1_53_0;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>../../inc;../../src;C:\local\boost_1_53_0;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>C:\local\boost_1_53_0\lib64-msvc-11.0;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
