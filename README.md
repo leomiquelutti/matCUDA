@@ -1,5 +1,5 @@
 # matCUDA
-A C++ library that aims to facilitate the development of C++ codes that involves generalized vectors and matrix operations with GPU-based computing using CUDA
+A C++ library that aims to facilitate the development of C++ codes that involves generalized vectors and matrix operations with GPU-based computing using CUDA. A very brief overview of its funcionality is shown below.
 
 ```
 #include "matCUDA.h"
@@ -27,3 +27,5 @@ void example()
 	bool equalIdentity = m1*m2 == eye<ComplexDouble>( size );
 }
 ```
+
+An instance of the Array class represents a vector or matrix (or even arrays of higher degrees), and needed memory is automatically allocated at its creation. Several overloaded operators (as *, +, -, etc) are responsible for the operations between Arrays, as addition, multiplication, etc. Also, there are some algebraic functions implemented, as inversion, LU and QR decomposition, transpose, etc.
