@@ -28,4 +28,4 @@ void example()
 }
 ```
 
-An instance of the Array class represents a vector or matrix (or even arrays of higher degrees), and needed memory is automatically allocated at its creation. Several overloaded operators (as *, +, -, etc) are responsible for the operations between Arrays, as addition, multiplication, etc. Also, there are some algebraic functions implemented, as inversion, LU and QR decomposition, transpose, etc.
+An instance of the Array class represents a vector or matrix (or even arrays of higher degrees), and needed memory is automatically allocated at its creation. Several overloaded operators (as *, +, -, etc) are responsible for the operations between Arrays, as addition, multiplication, etc. Also, there are some algebraic functions implemented, as inversion, LU and QR decomposition, transpose, etc, (almost) every operation implemented to take place on the GPU.
