@@ -1,6 +1,9 @@
 #include "unitTests.h"
 
-void draft()
+#include "matCUDA.h"
+using namespace matCUDA;
+
+void example()
 {
-	// here you test your development
+	// do your stuff here
 }
