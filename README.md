@@ -9,12 +9,10 @@ void example()
 {
 	size_t size = 1024;
 
-	// creates ComplexDouble-type Array object 
-	// with size random elements - vector
+	// creates ComplexDouble-type Array object with size random elements - vector
 	Array<ComplexDouble> v1 = rand<ComplexDouble>( size );
 
-	// creates ComplexDouble-type Array object
-	// with size x size random elements - matrix
+	// creates ComplexDouble-type Array object with size x size random elements - matrix
 	Array<ComplexDouble> m1 = rand<ComplexDouble>( size, size );
 
 	// multiplies m1 times v1 adn stores in v2
