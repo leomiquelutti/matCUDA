@@ -1,8 +1,9 @@
 #include <boost/exception/all.hpp>
 #include <boost/pointer_cast.hpp>
 
+#include "common.h"
+
 #include "cublasOperations.h"
-#include "array.cuh"
 
 namespace matCUDA
 {

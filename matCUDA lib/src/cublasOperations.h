@@ -4,7 +4,7 @@
 #include <cublas.h>
 #include <cublas_v2.h>
 
-#include "Array.h"
+#include "matCUDA.h"
 
 #ifndef BATCHSIZE
 #define BATCHSIZE 1

@@ -1,5 +1,8 @@
-#include "curandOperations.h"
 #include <time.h>
+
+#include "common.h"
+
+#include "curandOperations.h"
 
 namespace matCUDA
 {

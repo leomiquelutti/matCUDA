@@ -11,13 +11,12 @@ typedef __int32 index_t;
 #include <complex>
 typedef std::complex<float> ComplexFloat;
 typedef std::complex<double> ComplexDouble;
-//typedef ComplexFloat Complex;
-//typedef ComplexDouble Complex;
+
+#include "allocators.h"
 
 #define CONFIDENCE_INTERVAL					10;
 #define CONFIDENCE_INTERVAL_FLOAT			1E-6;
 #define CONFIDENCE_INTERVAL_DOUBLE			1E-16;
-
 
 /* Some handy stuff */
 #define CUDA_CALL(value) do {		           								      \
@@ -85,5 +84,7 @@ class CudaDevice
 		CudaDevice(CudaDevice const&);
         void operator=(CudaDevice const&);
 };
+
+#include "array.cuh"
 
 #endif
