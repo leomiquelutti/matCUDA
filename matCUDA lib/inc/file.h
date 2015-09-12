@@ -1,6 +1,3 @@
-
-// Test
-
 #define rep(z, n, text) \
 	descriptor.push_back(x ## n);
 
