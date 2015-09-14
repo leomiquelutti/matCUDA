@@ -3,7 +3,7 @@
 
 #include <cufft.h>
 
-#include "Array.h"
+#include "matCUDA.h"
 
 namespace matCUDA
 {

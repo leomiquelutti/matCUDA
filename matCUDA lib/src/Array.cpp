@@ -3,11 +3,9 @@
 #include <boost/exception/all.hpp>
 #include <boost/math/special_functions.hpp>
 
+#include "common.h"
+
 #include "Array.h"
-#include "array.cuh"
-#include "cublasOperations.h"
-#include "cufftOperations.h"
-#include "cusolverOperations.h"
 
 // ArrayDescriptor implementation
 

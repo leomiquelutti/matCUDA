@@ -2,10 +2,9 @@
 #include <stack>
 #include <boost/exception/all.hpp>
 
-#include "global_func.h"
-#include "cusolverOperations.h"
-#include "cufftOperations.h"
-#include "curandOperations.h"
+#include "common.h"
+
+#include "Array.h"
 
 namespace matCUDA
 {

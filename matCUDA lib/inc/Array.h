@@ -1,9 +1,9 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-#include <vector>
-#include <boost/preprocessor.hpp>
+#include "matCUDA.h"
 
+<<<<<<< HEAD
 #include "allocators.h"
 #include "common.h"
 
@@ -236,6 +236,12 @@ namespace matCUDA
 	template <typename TElement>
 	Array<TElement> eye(index_t N);
 }
+=======
+#include "cublasOperations.h"
+#include "cufftOperations.h"
+#include "cusolverOperations.h"
+#include "curandOperations.h"
+>>>>>>> origin/master
 
 #endif
 

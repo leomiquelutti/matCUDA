@@ -1,10 +1,6 @@
-#include "Array.h"
 
-namespace matCUDA
-{
-	template <typename TElement>
-	Array<TElement> eye( index_t N );
 
+<<<<<<< HEAD
 	template <typename TElement>
 	Array<TElement> dpss( index_t N, double NW, index_t degree );
 
@@ -36,3 +32,5 @@ namespace matCUDA
 	//Array<TElement> invert( Array<TElement> ); // TODO
 	//TElement determinant( Array<TElement> ); // TODO
 }
+=======
+>>>>>>> origin/master

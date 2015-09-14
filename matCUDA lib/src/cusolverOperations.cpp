@@ -1,5 +1,7 @@
 #include <boost\math\special_functions.hpp>
 
+#include "common.h"
+
 #include "cusolverOperations.h"
 
 namespace matCUDA

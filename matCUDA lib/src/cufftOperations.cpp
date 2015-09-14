@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include "cufftOperations.h"
 
 namespace matCUDA
