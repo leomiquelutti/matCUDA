@@ -424,6 +424,10 @@ namespace matCUDA
 				  << std::endl;
 		tictoc_stack.pop();
 	}
+	long double toc( long double in ) {
+		long double out = in + ((double)(clock() - tictoc_stack.top())) / CLOCKS_PER_SEC;
+		return out;
+	}
 }
 
 //template <typename TElement>

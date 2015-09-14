@@ -50,8 +50,8 @@ namespace matCUDA
 		ArrayDescriptor& GetDescriptor();
 
 		// operators
-		bool operator == (Array<TElement>& a);
-		bool operator != (Array<TElement>& a);
+		bool operator == (Array<TElement> a);
+		bool operator != (Array<TElement> a);
 		const TElement& operator () (index_t u, ...) const;
 		TElement& operator () (index_t u, ...);
 		Array<TElement>& operator = (Array<TElement> &a);

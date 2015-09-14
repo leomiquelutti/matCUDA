@@ -4,7 +4,7 @@ using namespace matCUDA;
 
 int main()
 {
-	size_t size = 1024;
+	size_t size = 4;
 
 	// creates ComplexDouble-type Array object 
 	// with size random elements - vector
@@ -24,8 +24,25 @@ int main()
 	if( m1.determinant() != ComplexDouble(0,0) )
 		m2 = m1.invert();
 
+	int a;
+	Array<ComplexDouble> m = m1*m2;
+	m.print();
+
+	Array<ComplexDouble> b = eye<ComplexDouble>( size );
+	b.print();
+
+	if( m == b )
+		a = 2;
+	else
+		a = 3;
+	
 	// check is m1 times m2 equals identity matrix
-	bool equalIdentity = m1*m2 == eye<ComplexDouble>( size );
+	bool equalIdentity = m == eye<ComplexDouble>( size );
+	m.print();
+
+	m.invert().print();
+
+	m.print();
 
 	return 0;
 }

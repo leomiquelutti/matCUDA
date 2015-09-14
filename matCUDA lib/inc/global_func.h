@@ -26,6 +26,7 @@ namespace matCUDA
 	// measure time and print
 	void tic();
 	void toc();
+	long double toc( long double in );
 
 	Array<ComplexFloat> Array_S2C( Array<float> ); // TODO
 	Array<ComplexDouble> Array_D2Z( Array<double> ); // TODO

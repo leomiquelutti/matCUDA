@@ -865,7 +865,7 @@ namespace matCUDA
 	//template Array<ComplexDouble>& Array<ComplexDouble>::transpose();
 
 	template <typename TElement>
-	bool Array<TElement>::operator == (Array<TElement>& a)
+	bool Array<TElement>::operator == (Array<TElement> a)
 	{
 		if(m_indexer->m_descriptor != a.m_indexer->m_descriptor)
 			return false;
@@ -876,14 +876,14 @@ namespace matCUDA
 		return true;
 	}
 
-	template bool Array<int>::operator == (Array<int>& a);
-	template bool Array<float>::operator == (Array<float>& a);
-	template bool Array<double>::operator == (Array<double>& a);
-	template bool Array<ComplexFloat>::operator == (Array<ComplexFloat>& a);
-	template bool Array<ComplexDouble>::operator == (Array<ComplexDouble>& a);
+	template bool Array<int>::operator == (Array<int> a);
+	template bool Array<float>::operator == (Array<float> a);
+	template bool Array<double>::operator == (Array<double> a);
+	template bool Array<ComplexFloat>::operator == (Array<ComplexFloat> a);
+	template bool Array<ComplexDouble>::operator == (Array<ComplexDouble> a);
 
 	template <typename TElement>
-	bool Array<TElement>::operator != (Array<TElement>& a)
+	bool Array<TElement>::operator != (Array<TElement> a)
 	{
 		if(m_indexer->m_descriptor != a.m_indexer->m_descriptor)
 			return true;
@@ -894,11 +894,11 @@ namespace matCUDA
 		return false;
 	}
 
-	template bool Array<int>::operator != (Array<int>& a);
-	template bool Array<float>::operator != (Array<float>& a);
-	template bool Array<double>::operator != (Array<double>& a);
-	template bool Array<ComplexFloat>::operator != (Array<ComplexFloat>& a);
-	template bool Array<ComplexDouble>::operator != (Array<ComplexDouble>& a);
+	template bool Array<int>::operator != (Array<int> a);
+	template bool Array<float>::operator != (Array<float> a);
+	template bool Array<double>::operator != (Array<double> a);
+	template bool Array<ComplexFloat>::operator != (Array<ComplexFloat> a);
+	template bool Array<ComplexDouble>::operator != (Array<ComplexDouble> a);
 
 	//template <typename TElement>
 	//bool Array<TElement>::operator > (Array<TElement>& a)
