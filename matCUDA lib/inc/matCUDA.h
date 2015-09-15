@@ -5,6 +5,8 @@
 #include <vector>
 #include <boost/preprocessor.hpp>
 
+#include "allocators.h"
+
 typedef __int32 index_t;
 
 #include <complex>
@@ -56,8 +58,8 @@ namespace matCUDA
 		ArrayDescriptor& GetDescriptor();
 
 		// operators
-		bool operator == (Array<TElement>& a);
-		bool operator != (Array<TElement>& a);
+		bool operator == (Array<TElement> a);
+		bool operator != (Array<TElement> a);
 		const TElement& operator () (index_t u, ...) const;
 		TElement& operator () (index_t u, ...);
 		Array<TElement>& operator = (Array<TElement> &a);
