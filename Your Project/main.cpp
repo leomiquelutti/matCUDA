@@ -17,7 +17,7 @@ int main()
 	// multiplies m1 times v1 adn stores in v2
 	Array<ComplexDouble> v2 = m1*v1;
 
-	// creates m2 with dimensions of m2
+	// creates m2 with dimensions of m1
 	Array<ComplexDouble> m2( m1.getDim(0), m1.getDim(1) );
 
 	// check if determinant of m1 is different from 0. if so, inverts m1 and stores in m2

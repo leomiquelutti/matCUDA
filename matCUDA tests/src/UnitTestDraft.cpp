@@ -3,7 +3,7 @@
 #include "matCUDA.h"
 using namespace matCUDA;
 
-void example()
+void draft()
 {
 	// do your stuff here
 }
