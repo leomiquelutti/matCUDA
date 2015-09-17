@@ -407,7 +407,7 @@ C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\include\malloc.h
 C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\include\crtdefs.h
 C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\include\ammintrin.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/detail/config/forceinline.h
-C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/detail/config/exec_check_disable.h
+C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/detail/config/hd_warning_disable.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/detail/config/global_workarounds.h
 C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\include\complex
 C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\include\ymath.h
@@ -580,6 +580,8 @@ C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\driver_types.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/error.inl
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/detail/bad_alloc.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/throw_on_error.h
+C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system_error.h
+C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/terminate.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/bulk.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/bulk/bulk.hpp
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/bulk/detail/config.hpp
@@ -590,7 +592,6 @@ C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cu
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\cuda_runtime_api.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/bulk/detail/throw_on_error.hpp
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/bulk/detail/terminate.hpp
-C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system_error.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/bulk/detail/cuda_launcher/runtime_introspection.hpp
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/bulk/detail/cuda_launcher/cuda_launch_config.hpp
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/detail/minmax.h
@@ -859,10 +860,10 @@ C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/de
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/detail/sequential/extrema.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cpp/detail/extrema.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\thrust/system/cuda/detail/extrema.h
-c:\users\usuario\documents\github\matcuda\matcuda lib\src\array.cuh
+s:\projects\matcuda.git\trunk\matcuda lib\src\array.cuh
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\cuComplex.h
 C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\include\math.h
 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\vector_types.h
-c:\users\usuario\documents\github\matcuda\matcuda lib\inc\allocators.h
+s:\projects\matcuda.git\trunk\matcuda lib\inc\allocators.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include\cuda_runtime.h
-c:\users\usuario\documents\github\matcuda\matcuda lib\src\array.cuh
+s:\projects\matcuda.git\trunk\matcuda lib\src\array.cuh
