@@ -1,5 +1,6 @@
 #include <boost/exception/all.hpp>
 #include <boost/pointer_cast.hpp>
+#include <iostream>
 
 #include "common.h"
 
