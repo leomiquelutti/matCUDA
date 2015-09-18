@@ -45,6 +45,11 @@
     <ClCompile Include="..\..\src\UnitTest20.cpp" />
     <ClCompile Include="..\..\src\UnitTestDraft.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\matCUDA lib\os\win32\matCUDA.vcxproj">
+      <Project>{994a12b8-223f-4f8b-8bdf-b533dd93ece1}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D8987F83-B7D9-44F2-960C-3B6E810DC0B5}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
