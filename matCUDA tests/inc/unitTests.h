@@ -1,14 +1,12 @@
 #ifndef UNIT_TESTS_H
 #define UNIT_TESTS_H
 
-//#include "../../matCUDA lib/inc/
 #include "matCUDA.h"
 
 #include <boost/current_function.hpp>
 #include <boost/preprocessor.hpp>
 #include <boost/math/special_functions/next.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/test/included/unit_test.hpp>
 
 using namespace matCUDA;
 
