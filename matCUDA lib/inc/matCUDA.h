@@ -2,6 +2,8 @@
 
 #define PI 3.141592653589793238462643
 
+#define BOOST_ALL_DYN_LINK
+
 #include <vector>
 #include <boost/preprocessor.hpp>
 

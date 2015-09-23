@@ -2,8 +2,7 @@
 
 using namespace boost::unit_test;
 
-test_suite*
-init_unit_test_suite( int argc, char* argv[] )
+int main( int argc, char* argv[] )
 {
 	test_suite* ts1 = BOOST_TEST_SUITE( "Array test suite" );
 		
