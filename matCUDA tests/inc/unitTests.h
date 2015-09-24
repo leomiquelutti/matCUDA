@@ -1,7 +1,7 @@
 #ifndef UNIT_TESTS_H
 #define UNIT_TESTS_H
 
-#define BOOST_ALL_DYN_LINK
+//#define BOOST_ALL_DYN_LINK
 
 #include <boost/current_function.hpp>
 #include <boost/preprocessor.hpp>
