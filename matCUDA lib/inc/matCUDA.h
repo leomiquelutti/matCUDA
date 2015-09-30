@@ -82,7 +82,6 @@ namespace matCUDA
 		// functions
 		Array<TElement> acos();
 		Array<TElement> acosd();
-		void			Array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, int *cooColIndexHostPtr, TElement *cooValHostPtr ); 
 		Array<TElement> asin();
 		Array<TElement> asind();
 		Array<TElement> atan();
@@ -122,6 +121,7 @@ namespace matCUDA
 
 		// TODO functions
 		Array<TElement> addColumn( Array<TElement> *col_to_add ); // TODO
+		void			Array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, int *cooColIndexHostPtr, TElement *cooValHostPtr ); 
 		Array<TElement> elementWiseAdd( Array<TElement> *A ); // TODO
 		Array<TElement> elementWiseDivide( Array<TElement> *A ); // TODO
 		Array<TElement> elementWiseMultiply( Array<TElement> *A ); // TODO

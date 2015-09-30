@@ -12,7 +12,7 @@
 
 using namespace matCUDA;
 
-typedef ComplexDouble Complex;
+typedef ComplexFloat Complex;
 
 template <typename TElement>
 void TEST_CALL(Array<TElement> a, Array<TElement> b, char *s )

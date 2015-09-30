@@ -1549,15 +1549,29 @@ namespace matCUDA
 			stat = op.LU( this, &LU, P );
 			if( stat == CUBLAS_STATUS_SUCCESS )
 			{
+				//*L = eye<TElement>( std::min(U->getDim(0),U->getDim(1)) );
+				//for( int i = 0; i < U->getDim(0); i++ ) {
+				//	for( int j = 0; j < i; j++ )
+				//		(*L)( i, j ) = LU( i, j );
+				//}
+
 				*L = eye<TElement>( LU.GetDescriptor().GetDim(0) );
 				for( int i = 0; i < LU.GetDescriptor().GetDim(0); i++ ) {
 					for( int j = 0; j < i; j++ )
 						(*L)( i, j ) = LU( i, j );
 				}
+
+				//zeros_under_diag( U->data(), std::min(U->getDim(0),U->getDim(1)) );
+
 				for( int i = 0; i < LU.GetDescriptor().GetDim(0); i++ ) {
-					for( int j = i; j < LU.GetDescriptor().GetDim(0); j++ )
+					for( int j = i; j < LU.GetDescriptor().GetDim(1); j++ )
 						(*U)( i, j ) = LU( i, j );
 				}
+
+				//for( int i = 0; i < U->getDim(0); i++ ) {
+				//	for( int j = 0; j < i; j++ )
+				//		(*U)( i, j ) = 0;
+				//}
 			}
 			else
 				std::cout << "LU decomposition failed" << std::endl;
@@ -2305,7 +2319,7 @@ namespace matCUDA
 		cufftResult_t stat;
 		Array<ComplexFloat> result( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
 	
-		stat = op.fft( this, &result );
+		stat = op.fft_stream( this, &result );
 		return result;
 	}
 
@@ -2315,19 +2329,9 @@ namespace matCUDA
 		cufftResult_t stat;
 		Array<ComplexDouble> result( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
 
-		stat = op.fft( this, &result );
+		stat = op.fft_stream( this, &result );
 		return result;
 	}
-
-	//Array<ComplexDouble> Array<double>::fft()
-	//{
-	//	cufftOperations<ComplexDouble> op;
-	//	cufftResult_t stat;
-	//	Array<ComplexDouble> result( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-	//
-	//	stat = op.fft( this, &result );
-	//	return result;
-	//}
 
 	// implementation of trigonometric functions
 

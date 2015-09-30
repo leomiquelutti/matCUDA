@@ -64,7 +64,7 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.fft( in, &result );
+			stat = op.fft_stream( in, &result );
 		}
 		catch(std::exception &e)
 		{
@@ -82,7 +82,7 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.fft( in, &result );
+			stat = op.fft_stream( in, &result );
 		}
 		catch(std::exception &e)
 		{
