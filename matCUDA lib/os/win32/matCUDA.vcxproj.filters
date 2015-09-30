@@ -55,6 +55,8 @@
     <ClInclude Include="..\..\inc\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\array.cuh" />
+    <ClInclude Include="..\..\src\array.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

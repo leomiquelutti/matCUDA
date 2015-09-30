@@ -127,12 +127,10 @@
     <ClCompile />
     <ClCompile>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalOptions>-D_ITERATOR_DEBUG_LEVEL=0 %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>MATCUDA_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <CudaCompile />
     <CudaCompile>
-      <AdditionalOptions>-D_ITERATOR_DEBUG_LEVEL=0 %(AdditionalOptions)</AdditionalOptions>
       <CudaRuntime>Static</CudaRuntime>
       <TargetMachinePlatform>64</TargetMachinePlatform>
     </CudaCompile>
