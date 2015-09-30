@@ -78,12 +78,12 @@ __global__ void zeros_under_diag_kernel(cuComplex *a, __int32 size);
 __global__ void zeros_under_diag_kernel(cuDoubleComplex *a, __int32 size);
 
 template <typename T>
-__host__ void eye(T **a, __int32 size);
+__host__ void cudaEye(T *a, __int32 size);
 
-__global__ void eye_kernel(float **a, __int32 size);
-__global__ void eye_kernel(double **a, __int32 size);
-__global__ void eye_kernel(cuComplex **a, __int32 size);
-__global__ void eye_kernel(cuDoubleComplex **a, __int32 size);
+__global__ void cudaEye_kernel(float *a, __int32 size);
+__global__ void cudaEye_kernel(double *a, __int32 size);
+__global__ void cudaEye_kernel(cuComplex *a, __int32 size);
+__global__ void cudaEye_kernel(cuDoubleComplex *a, __int32 size);
 
 template <typename T>
 __host__ T min_cuda( T *a, int *idx, __int32 size );

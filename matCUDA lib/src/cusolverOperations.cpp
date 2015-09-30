@@ -115,7 +115,7 @@ namespace matCUDA
 		CUSPARSE_CALL( cusparseXcoo2csr( handleCusparse, d_cooRowIndex, nnz, N, d_csrRowPtr, CUSPARSE_INDEX_BASE_ZERO ) );
 	
 		// call cusolverSp<type>csreigvsi
-		CUSOLVER_CALL( dpss_type( &handleCusolver, N, nnz, &descrA, d_cooVal, d_csrRowPtr, d_cooColIndex, max_lambda, d_eigenvector0, maxite, tol, d_mu, d_eigenvector ) );
+		CUSOLVER_CALL( cusolverSpTcsreigvsi( &handleCusolver, N, nnz, &descrA, d_cooVal, d_csrRowPtr, d_cooColIndex, max_lambda, d_eigenvector0, maxite, tol, d_mu, d_eigenvector ) );
 
 		cudaDeviceSynchronize();
 		CUDA_CALL( cudaGetLastError() );
@@ -146,13 +146,223 @@ namespace matCUDA
 	template cusolverStatus_t cusolverOperations<float>::dpss( Array<float> *eigenvector, index_t N, double NW, index_t degree );
 	template cusolverStatus_t cusolverOperations<double>::dpss( Array<double> *eigenvector, index_t N, double NW, index_t degree );
 
-	cusolverStatus_t cusolverOperations<float>::dpss_type( cusolverSpHandle_t *handle, int m, int nnz, cusparseMatDescr_t *descrA, const float *csrValA, const int *csrRowPtrA, const int *csrColIndA, float mu0, const float *d_eigenvector0, int maxite, float tol, float *d_mu, float *d_eigenvector )
+	template <typename TElement>
+	cusolverStatus_t cusolverOperations<TElement>::QR( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R )
 	{
-		return cusolverSpScsreigvsi( *handle, m ,nnz, *descrA, csrValA, csrRowPtrA, csrColIndA, mu0, d_eigenvector0, maxite, tol, d_mu, d_eigenvector );;
+		cusolverDnHandle_t solver_handle;
+		CUSOLVER_CALL( cusolverDnCreate(&solver_handle) );
+
+		int M = A->getDim(0);
+		int N = A->getDim(1);
+		int minMN = std::min(M,N);
+
+		TElement *d_A, *h_A, *TAU, *Workspace, *d_Q;
+		h_A = A->m_data.GetElements();
+		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
+		CUDA_CALL( cudaMemcpy(d_A, h_A, M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
+
+		int work_size = 0;
+		CUSOLVER_CALL( cusolverDnTgeqrf_bufferSize(&solver_handle, M, N, d_A, M, &work_size) );
+		CUDA_CALL( cudaMalloc(&TAU, minMN * sizeof(TElement)) );
+		CUDA_CALL(cudaMalloc(&Workspace, work_size * sizeof(TElement)));
+
+		int *devInfo;
+		CUDA_CALL( cudaMalloc(&devInfo, sizeof(int)) );
+		CUDA_CALL( cudaMemset( (void*)devInfo, 0, 1 ) );
+
+		CUSOLVER_CALL( cusolverDnTgeqrf(&solver_handle, M, N, d_A, M, TAU, Workspace, work_size, devInfo) );
+		
+		int devInfo_h = 0;  
+		CUDA_CALL( cudaMemcpy(&devInfo_h, devInfo, sizeof(int), cudaMemcpyDeviceToHost) );
+		if (devInfo_h != 0)
+			return CUSOLVER_STATUS_INTERNAL_ERROR;
+
+		// CALL CUDA FUNCTION
+		CUDA_CALL( cudaMemcpy( R->m_data.GetElements(), d_A, R->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		for(int j = 0; j < M; j++)
+			for(int i = j + 1; i < N; i++)
+				(*R)(i,j) = 0;
+
+		// --- Initializing the output Q matrix (Of course, this step could be done by a kernel function directly on the device)
+		//*Q = eye<TElement> ( std::min(Q->getDim(0),Q->getDim(1)) );
+		CUDA_CALL( cudaMalloc(&d_Q, M*M*sizeof(TElement)) );
+		cudaEye<TElement>( d_Q, std::min(Q->getDim(0),Q->getDim(1)) );
+
+		// --- CUDA QR execution
+		CUSOLVER_CALL( cusolverDnTormqr(&solver_handle, CUBLAS_SIDE_LEFT, CUBLAS_OP_N, M, N, std::min(M, N), d_A, M, TAU, d_Q, M, Workspace, work_size, devInfo) );
+
+		// --- At this point, d_Q contains the elements of Q. Showing this.
+		CUDA_CALL( cudaMemcpy(Q->m_data.GetElements(), d_Q, M*M*sizeof(TElement), cudaMemcpyDeviceToHost) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+  
+		CUSOLVER_CALL( cusolverDnDestroy(solver_handle) );
+
+		return CUSOLVER_STATUS_SUCCESS;
+	}
+	
+	template cusolverStatus_t cusolverOperations<int>::QR( Array<int> *A, Array<int> *Q, Array<int> *R );
+	template cusolverStatus_t cusolverOperations<float>::QR( Array<float> *A, Array<float> *Q, Array<float> *R );
+	template cusolverStatus_t cusolverOperations<double>::QR( Array<double> *A, Array<double> *Q, Array<double> *R );
+	template cusolverStatus_t cusolverOperations<ComplexFloat>::QR( Array<ComplexFloat> *A, Array<ComplexFloat> *Q, Array<ComplexFloat> *R );
+	template cusolverStatus_t cusolverOperations<ComplexDouble>::QR( Array<ComplexDouble> *A, Array<ComplexDouble> *Q, Array<ComplexDouble> *R );
+	
+	template <typename TElement>
+	cusolverStatus_t cusolverOperations<TElement>::QR_zerocopy( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R )
+	{
+		cusolverDnHandle_t solver_handle;
+		CUSOLVER_CALL( cusolverDnCreate(&solver_handle) );
+
+		int M = A->getDim(0);
+		int N = A->getDim(1);
+		int minMN = std::min(M,N);
+
+		TElement *d_A, *h_A, *TAU, *Workspace, *d_Q, *d_R;
+		h_A = A->m_data.GetElements();
+		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
+		CUDA_CALL( cudaMemcpy(d_A, h_A, M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
+
+		int work_size = 0;
+		CUSOLVER_CALL( cusolverDnTgeqrf_bufferSize(&solver_handle, M, N, d_A, M, &work_size) );
+		CUDA_CALL( cudaMalloc(&TAU, minMN * sizeof(TElement)) );
+		CUDA_CALL(cudaMalloc(&Workspace, work_size * sizeof(TElement)));
+
+		int *devInfo;
+		CUDA_CALL( cudaMalloc(&devInfo, sizeof(int)) );
+		CUDA_CALL( cudaMemset( (void*)devInfo, 0, 1 ) );
+
+		CUSOLVER_CALL( cusolverDnTgeqrf(&solver_handle, M, N, d_A, M, TAU, Workspace, work_size, devInfo) );
+		
+		int devInfo_h = 0;  
+		CUDA_CALL( cudaMemcpy(&devInfo_h, devInfo, sizeof(int), cudaMemcpyDeviceToHost) );
+		if (devInfo_h != 0)
+			return CUSOLVER_STATUS_INTERNAL_ERROR;
+
+		// CALL CUDA FUNCTION
+		CUDA_CALL( cudaMemcpy( R->m_data.GetElements(), d_A, R->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+
+		// pass host pointer to device
+		CUDA_CALL( cudaHostGetDevicePointer( &d_R, R->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &d_Q, Q->m_data.GetElements(), 0 ) );
+
+		zeros_under_diag<TElement>( d_R, std::min(R->getDim(0),R->getDim(1)) );
+		//for(int j = 0; j < M; j++)
+		//	for(int i = j + 1; i < N; i++)
+		//		(*R)(i,j) = 0;
+
+		// --- Initializing the output Q matrix (Of course, this step could be done by a kernel function directly on the device)
+		//*Q = eye<TElement> ( std::min(Q->getDim(0),Q->getDim(1)) );
+		cudaEye<TElement>( d_Q, std::min(Q->getDim(0),Q->getDim(1)) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// --- CUDA QR_zerocopy execution
+		CUSOLVER_CALL( cusolverDnTormqr(&solver_handle, CUBLAS_SIDE_LEFT, CUBLAS_OP_N, M, N, std::min(M, N), d_A, M, TAU, d_Q, M, Workspace, work_size, devInfo) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+  
+		CUSOLVER_CALL( cusolverDnDestroy(solver_handle) );
+
+		return CUSOLVER_STATUS_SUCCESS;
+	}
+	
+	template cusolverStatus_t cusolverOperations<int>::QR_zerocopy( Array<int> *A, Array<int> *Q, Array<int> *R );
+	template cusolverStatus_t cusolverOperations<float>::QR_zerocopy( Array<float> *A, Array<float> *Q, Array<float> *R );
+	template cusolverStatus_t cusolverOperations<double>::QR_zerocopy( Array<double> *A, Array<double> *Q, Array<double> *R );
+	template cusolverStatus_t cusolverOperations<ComplexFloat>::QR_zerocopy( Array<ComplexFloat> *A, Array<ComplexFloat> *Q, Array<ComplexFloat> *R );
+	template cusolverStatus_t cusolverOperations<ComplexDouble>::QR_zerocopy( Array<ComplexDouble> *A, Array<ComplexDouble> *Q, Array<ComplexDouble> *R );
+	
+	cusolverStatus_t cusolverOperations<float>::cusolverSpTcsreigvsi( cusolverSpHandle_t *handle, int m, int nnz, cusparseMatDescr_t *descrA, const float *csrValA, const int *csrRowPtrA, const int *csrColIndA, float mu0, const float *x0, int maxite, float tol, float *mu, float *x )
+	{
+		return cusolverSpScsreigvsi( *handle, m ,nnz, *descrA, csrValA, csrRowPtrA, csrColIndA, mu0, x0, maxite, tol, mu, x );;
 	}
 
-	cusolverStatus_t cusolverOperations<double>::dpss_type( cusolverSpHandle_t *handle, int m, int nnz, cusparseMatDescr_t *descrA, const double *csrValA, const int *csrRowPtrA, const int *csrColIndA, double mu0, const double *d_eigenvector0, int maxite, double tol, double *d_mu, double *d_eigenvector )
+	cusolverStatus_t cusolverOperations<double>::cusolverSpTcsreigvsi( cusolverSpHandle_t *handle, int m, int nnz, cusparseMatDescr_t *descrA, const double *csrValA, const int *csrRowPtrA, const int *csrColIndA, double mu0, const double *x0, int maxite, double tol, double *mu, double *x )
 	{
-		return cusolverSpDcsreigvsi( *handle, m ,nnz, *descrA, csrValA, csrRowPtrA, csrColIndA, mu0, d_eigenvector0, maxite, tol, d_mu, d_eigenvector );
+		return cusolverSpDcsreigvsi( *handle, m ,nnz, *descrA, csrValA, csrRowPtrA, csrColIndA, mu0, x0, maxite, tol, mu, x );
 	}
+	
+	cusolverStatus_t cusolverOperations<ComplexFloat>::cusolverSpTcsreigvsi( cusolverSpHandle_t *handle, int m, int nnz, cusparseMatDescr_t *descrA, const ComplexFloat *csrValA, const int *csrRowPtrA, const int *csrColIndA, ComplexFloat mu0, const ComplexFloat *x0, int maxite, ComplexFloat tol, ComplexFloat *mu, ComplexFloat *x )
+	{
+		cuFloatComplex mu02 = make_cuFloatComplex( mu0.real(), mu0.imag() );
+		return cusolverSpCcsreigvsi( *handle, m ,nnz, *descrA, (const cuFloatComplex*)csrValA, csrRowPtrA, csrColIndA, mu02, (const cuFloatComplex*)x0, maxite, tol.real(), (cuFloatComplex*)mu, (cuFloatComplex*)x );
+	}
+	
+	cusolverStatus_t cusolverOperations<ComplexDouble>::cusolverSpTcsreigvsi( cusolverSpHandle_t *handle, int m, int nnz, cusparseMatDescr_t *descrA, const ComplexDouble *csrValA, const int *csrRowPtrA, const int *csrColIndA, ComplexDouble mu0, const ComplexDouble *x0, int maxite, ComplexDouble tol, ComplexDouble *mu, ComplexDouble *x )
+	{
+		cuDoubleComplex mu02 = make_cuDoubleComplex( mu0.real(), mu0.imag() );
+		return cusolverSpZcsreigvsi( *handle, m ,nnz, *descrA, (const cuDoubleComplex*)csrValA, csrRowPtrA, csrColIndA, mu02, (const cuDoubleComplex*)x0, maxite, tol.real(), (cuDoubleComplex*)mu, (cuDoubleComplex*)x );
+	}
+
+	cusolverStatus_t cusolverOperations<int>::cusolverDnTgeqrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, int *A, int lda, int *Lwork )
+	{
+		return CUSOLVER_STATUS_SUCCESS;
+	}	
+
+	cusolverStatus_t cusolverOperations<float>::cusolverDnTgeqrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, float *A, int lda, int *Lwork )
+	{
+		return cusolverDnSgeqrf_bufferSize( *handle, m, n, A, lda, Lwork );
+	}	
+
+	cusolverStatus_t cusolverOperations<double>::cusolverDnTgeqrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, double *A, int lda, int *Lwork )
+	{
+		return cusolverDnDgeqrf_bufferSize( *handle, m, n, A, lda, Lwork );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexFloat>::cusolverDnTgeqrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, ComplexFloat *A, int lda, int *Lwork )
+	{
+		return cusolverDnCgeqrf_bufferSize( *handle, m, n, (cuFloatComplex*)A, lda, Lwork );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexDouble>::cusolverDnTgeqrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, ComplexDouble *A, int lda, int *Lwork )
+	{
+		return cusolverDnZgeqrf_bufferSize( *handle, m, n, (cuDoubleComplex*)A, lda, Lwork );
+	}	
+
+	cusolverStatus_t cusolverOperations<int>::cusolverDnTgeqrf( cusolverDnHandle_t *handle, int m, int n, int *A, int lda, int *TAU, int *Workspace, int Lwork, int *devInfo )
+	{
+		return CUSOLVER_STATUS_SUCCESS;
+	}	
+
+	cusolverStatus_t cusolverOperations<float>::cusolverDnTgeqrf( cusolverDnHandle_t *handle, int m, int n, float *A, int lda, float *TAU, float *Workspace, int Lwork, int *devInfo )
+	{
+		return cusolverDnSgeqrf( *handle, m, n, A, lda, TAU, Workspace, Lwork, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<double>::cusolverDnTgeqrf( cusolverDnHandle_t *handle, int m, int n, double *A, int lda, double *TAU, double *Workspace, int Lwork, int *devInfo )
+	{
+		return cusolverDnDgeqrf( *handle, m, n, A, lda, TAU, Workspace, Lwork, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexFloat>::cusolverDnTgeqrf( cusolverDnHandle_t *handle, int m, int n, ComplexFloat *A, int lda, ComplexFloat *TAU, ComplexFloat *Workspace, int Lwork, int *devInfo )
+	{
+		return cusolverDnCgeqrf( *handle, m, n, (cuFloatComplex*)A, lda, (cuFloatComplex*)TAU, (cuFloatComplex*)Workspace, Lwork, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexDouble>::cusolverDnTgeqrf( cusolverDnHandle_t *handle, int m, int n, ComplexDouble *A, int lda, ComplexDouble *TAU, ComplexDouble *Workspace, int Lwork, int *devInfo )
+	{
+		return cusolverDnZgeqrf( *handle, m, n, (cuDoubleComplex*)A, lda, (cuDoubleComplex*)TAU, (cuDoubleComplex*)Workspace, Lwork, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<int>::cusolverDnTormqr( cusolverDnHandle_t *handle, cublasSideMode_t side, cublasOperation_t trans, int m, int n, int k, const int *A, int lda, const int *tau, int *C, int ldc, int *work, int lwork, int *devInfo )
+	{
+		return CUSOLVER_STATUS_SUCCESS;
+	}	
+
+	cusolverStatus_t cusolverOperations<float>::cusolverDnTormqr( cusolverDnHandle_t *handle, cublasSideMode_t side, cublasOperation_t trans, int m, int n, int k, const float *A, int lda, const float *tau, float *C, int ldc, float *work, int lwork, int *devInfo )
+	{
+		return cusolverDnSormqr( *handle, side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<double>::cusolverDnTormqr( cusolverDnHandle_t *handle, cublasSideMode_t side, cublasOperation_t trans, int m, int n, int k, const double *A, int lda, const double *tau, double *C, int ldc, double *work, int lwork, int *devInfo )
+	{
+		return cusolverDnDormqr( *handle, side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexFloat>::cusolverDnTormqr( cusolverDnHandle_t *handle, cublasSideMode_t side, cublasOperation_t trans, int m, int n, int k, const ComplexFloat *A, int lda, const ComplexFloat *tau, ComplexFloat *C, int ldc, ComplexFloat *work, int lwork, int *devInfo )
+	{
+		return cusolverDnCunmqr( *handle, side, trans, m, n, k, (const cuFloatComplex*)A, lda, (const cuFloatComplex*)tau, (cuFloatComplex*)C, ldc, (cuFloatComplex*)work, lwork, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexDouble>::cusolverDnTormqr( cusolverDnHandle_t *handle, cublasSideMode_t side, cublasOperation_t trans, int m, int n, int k, const ComplexDouble *A, int lda, const ComplexDouble *tau, ComplexDouble *C, int ldc, ComplexDouble *work, int lwork, int *devInfo )
+	{
+		return cusolverDnZunmqr( *handle, side, trans, m, n, k, (const cuDoubleComplex*)A, lda, (const cuDoubleComplex*)tau, (cuDoubleComplex*)C, ldc, (cuDoubleComplex*)work, lwork, devInfo );
+	}	
 }

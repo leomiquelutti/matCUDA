@@ -768,15 +768,13 @@ namespace matCUDA
 		cublasStatus_t stat;
 		try
 		{
-			stat = op.add( this, &a, &result );
-			//stat = op.add2( this, &a, &result, std::string("+") );
+			stat = op.add( this, &a, &result, std::string("+") );
 		}
 		catch(std::exception &e)
 		{
 			std::cerr << boost::diagnostic_information(e);
 		}
 
-		//result.m_data = m_data + a.m_data;
 		return result;
 	}
 
@@ -785,30 +783,6 @@ namespace matCUDA
 	template Array<double> Array<double>::operator + (Array<double> &a);
 	template Array<ComplexFloat> Array<ComplexFloat>::operator + (Array<ComplexFloat> &a);
 	template Array<ComplexDouble> Array<ComplexDouble>::operator + (Array<ComplexDouble> &a);
-
-	//template <typename TElement>
-	//Array<TElement> Array<TElement>::operator + (Array<float> &a)
-	//{
-	//	Array<TElement> result(*this);
-	//	if(m_indexer->m_descriptor != a.m_indexer->m_descriptor)
-	//		return result;
-	//	
-	//	cublasOperations<TElement> op;
-	//	cublasStatus_t stat;
-	//	try
-	//	{
-	//		stat = op.add( this, &a, &result );
-	//		//stat = op.add2( this, &a, &result, '+' );
-	//	}
-	//	catch(std::exception &e)
-	//	{
-	//		std::cerr << boost::diagnostic_information(e);
-	//	}
-	//
-	//	//result.m_data = m_data + a.m_data;
-	//	return result;
-	//}
-	//template Array<double> Array<double>::operator + (Array<float> &a);
 
 	template <typename TElement>
 	Array<TElement> Array<TElement>::operator + (TElement a)
@@ -825,42 +799,6 @@ namespace matCUDA
 	template Array<double> Array<double>::operator + (double a);
 	template Array<ComplexFloat> Array<ComplexFloat>::operator + (ComplexFloat a);
 	template Array<ComplexDouble> Array<ComplexDouble>::operator + (ComplexDouble a);
-
-	//template <typename TElement>
-	//Array<TElement>& Array<TElement>::transpose()
-	//{
-	//	if(m_indexer->GetDescriptor().GetNDim() != 2)
-	//		return *this;
-	//
-	//	cublasOperations<TElement> op;
-	//	cublasStatus_t stat;
-	//	try
-	//	{
-	//		//this->print();
-	//		stat = op.transpose( this );
-	//		//ArrayData::transpose( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(0) );
-	//		//transpose();
-	//
-	//		//m_data.transpose( this->GetDescriptor().GetDim(1), this->GetDescriptor().GetDim(0) );
-	//	}
-	//	catch(std::exception &e)
-	//	{
-	//		std::cerr << boost::diagnostic_information(e);
-	//		return *this;
-	//	}
-	//}
-	//
-	//template Array<int>& Array<int>::transpose();
-	//template Array<float>& Array<float>::transpose();
-	//template Array<double>& Array<double>::transpose();
-	//template Array<ComplexFloat>& Array<ComplexFloat>::transpose();
-	//template Array<ComplexDouble>& Array<ComplexDouble>::transpose();
-
-	//template Array<int>& Array<int>::transpose();
-	//template Array<float>& Array<float>::transpose();
-	//template Array<double>& Array<double>::transpose();
-	//template Array<ComplexFloat>& Array<ComplexFloat>::transpose();
-	//template Array<ComplexDouble>& Array<ComplexDouble>::transpose();
 
 	template <typename TElement>
 	bool Array<TElement>::operator == (Array<TElement> a)
@@ -1064,22 +1002,19 @@ namespace matCUDA
 	Array<TElement> Array<TElement>::operator - (Array<TElement> &a)
 	{
 		Array<TElement> result(*this);
-
 		if(m_indexer->m_descriptor != a.m_indexer->m_descriptor)
 			return result;
-
+	
 		cublasOperations<TElement> op;
 		cublasStatus_t stat;
 		try
 		{
-			stat = op.minus( this, &a, &result );
+			stat = op.add( this, &a, &result, std::string("-") );
 		}
 		catch(std::exception &e)
 		{
 			std::cerr << boost::diagnostic_information(e);
 		}
-
-		//result.m_data = m_data - a.m_data;
 
 		return result;
 	}
@@ -1318,12 +1253,13 @@ namespace matCUDA
 		if(m_indexer->GetDescriptor().GetNDim() != 2)
 			return *this;
 
-		Array<TElement> result = *this;
+		Array<TElement> result(this->getDim(1),this->getDim(0));
 		cublasOperations<TElement> op;
 		cublasStatus_t stat;
 		try
 		{
-			CUBLAS_CALL( op.transpose( &result ) );
+			//CUBLAS_CALL( op.transpose( this, &result ) );
+			CUBLAS_CALL( op.transpose_zerocopy( this, &result ) );
 		}
 		catch(std::exception &e)
 		{
@@ -1390,10 +1326,11 @@ namespace matCUDA
 
 		cublasOperations<TElement> op;
 		cublasStatus_t stat;
-		Array<TElement> result = *this;
+		Array<TElement> result(this->getDim(1),this->getDim(0));
 		try
 		{
-			CUBLAS_CALL( op.hermitian( &result ) );
+			CUBLAS_CALL( op.hermitian_zerocopy( this, &result ) );
+			//result.print();
 		}
 		catch(std::exception &e)
 		{
@@ -1638,61 +1575,6 @@ namespace matCUDA
 
 	// implementation of invert
 
-	template<> Array<ComplexFloat> Array<ComplexFloat>::invert()
-	{
-		cublasOperations<ComplexFloat> op;
-		cublasStatus_t stat;
-
-		if( m_data.m_numElements == 1)
-		{
-			Array<ComplexFloat> result(1);
-			result(0) = ComplexFloat(1,0)/(*this)(0);
-			return result;
-		}
-	
-		Array<ComplexFloat> result = *this;
-		Array<ComplexFloat> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-		Array<int> Pivot( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-
-		try
-		{
-			stat = op.invert( &result, &LU, &Pivot );
-		}
-		catch(std::exception &e)
-		{
-			std::cerr << boost::diagnostic_information(e);
-		}
-
-		return result;
-	}
-	template<> Array<ComplexDouble> Array<ComplexDouble>::invert()
-	{
-		cublasOperations<ComplexDouble> op;
-		cublasStatus_t stat;
-
-		if( m_data.m_numElements == 1)
-		{
-			Array<ComplexDouble> result(1);
-			result(0) = ComplexDouble(1,0)/(*this)(0);
-			return result;
-		}
-	
-		Array<ComplexDouble> result = *this;
-		Array<ComplexDouble> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-		Array<int> Pivot( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-
-		try
-		{
-			stat = op.invert( &result, &LU, &Pivot );
-		}
-		catch(std::exception &e)
-		{
-			std::cerr << boost::diagnostic_information(e);
-		}
-
-		return result;
-	}
-
 	template <typename TElement>
 	Array<TElement> Array<TElement>::invert()
 	{
@@ -1702,29 +1584,34 @@ namespace matCUDA
 		if( m_data.m_numElements == 1)
 		{
 			Array<TElement> result(1);
-			result(0) = 1.0/(*this)(0);
+			result(0) = (TElement)1.0/(*this)(0);
 			return result;
 		}
 	
-		Array<TElement> result = *this;
-		Array<TElement> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-		Array<int> Pivot( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
+		Array<TElement> result( this->getDim(0), this->getDim(1) );
 
 		try
 		{
-			stat = op.invert( &result, &LU, &Pivot );
+			stat = op.invert_zerocopy( &result, this );
+			//stat = op.invert( &result, this );
 		}
 		catch(std::exception &e)
 		{
 			std::cerr << boost::diagnostic_information(e);
 		}
 
+		if( stat != CUBLAS_STATUS_SUCCESS )
+			result = *this;
+
+		//result.print();
 		return result;
 	}
 
 	template Array<int> Array<int>::invert();
 	template Array<float> Array<float>::invert();
 	template Array<double> Array<double>::invert();
+	template Array<ComplexFloat> Array<ComplexFloat>::invert();
+	template Array<ComplexDouble> Array<ComplexDouble>::invert();
 
 	// implementation of LS solution
 
@@ -2657,8 +2544,11 @@ namespace matCUDA
 	template <typename TElement>
 	void Array<TElement>::QR( Array<TElement> *Q, Array<TElement> *R )
 	{
-		cublasOperations<TElement> op;
-		cublasStatus_t stat;
+		cublasOperations<TElement> opCublas;
+		cublasStatus_t statCublas;
+
+		cusolverOperations<TElement> opCusolver;
+		cusolverStatus_t statCusolver;
 
 		if( m_data.m_numElements == 1)
 		{
@@ -2669,8 +2559,13 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.QR( this, Q, R );
-			if( stat != CUBLAS_STATUS_SUCCESS )
+			//statCublas = opCublas.QR( this, Q, R );
+			//if( statCublas != CUBLAS_STATUS_SUCCESS )
+			//	std::cout << "QR decomposition failed" << std::endl;
+						
+			statCusolver = opCusolver.QR( this, Q, R );
+			//statCusolver = opCusolver.QR_zerocopy( this, Q, R );
+			if( statCusolver != CUSOLVER_STATUS_SUCCESS )
 				std::cout << "QR decomposition failed" << std::endl;
 		}
 		catch(std::exception &e)

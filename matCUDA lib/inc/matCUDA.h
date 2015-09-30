@@ -2,8 +2,6 @@
 
 #define PI 3.141592653589793238462643
 
-#define BOOST_ALL_DYN_LINK
-
 #include <vector>
 #include <boost/preprocessor.hpp>
 
@@ -77,6 +75,9 @@ namespace matCUDA
 		Array<TElement>& operator += (Array<TElement> &a); // gpu
 		Array<TElement>& operator -= (Array<TElement> &a); // gpu
 		Array<TElement>& operator *= (Array<TElement> &a); // gpu
+
+		// get m_data pointer
+		TElement *data() { return m_data.m_data; };
 
 		// functions
 		Array<TElement> acos();
@@ -267,6 +268,7 @@ namespace matCUDA
 	// measure time and print
 	void tic();
 	void toc();
+	long double toc( long double in );
 
 	Array<ComplexFloat> Array_S2C( Array<float> ); // TODO
 	Array<ComplexDouble> Array_D2Z( Array<double> ); // TODO
@@ -275,5 +277,4 @@ namespace matCUDA
 	//Array<TElement> hermitian( Array<TElement> ); // TODO
 	//Array<TElement> invert( Array<TElement> ); // TODO
 	//TElement determinant( Array<TElement> ); // TODO
-
 }

@@ -13,16 +13,16 @@ namespace matCUDA
 	template <typename TElement>
 	Array<TElement> eye( index_t N )
 	{	
-		// serious problem here!!
 		Array<TElement> result( N, N );
-		//result.print(); // TODO why??
-		for (int i = 0; i < result.GetDescriptor().GetDim(0); i++) {
-			for (int j = 0; j < result.GetDescriptor().GetDim(1); j++) 
-				result(i,j) = ( i == j );
-		}
-		//Array<TElement> result( N, N );
-		//for (int i = 0; i < result.GetDescriptor().GetDim(0); i++)
-		//	result(i,i) = 1;
+
+		//// CPU version
+		//for (int i = 0; i < result.GetDescriptor().GetDim(0); i++) {
+		//	for (int j = 0; j < result.GetDescriptor().GetDim(1); j++) 
+		//		result(i,j) = ( i == j );
+		//}
+
+		// GPU version
+		cudaEye<TElement>( result.data(), N );
 
 		return result;
 	}
@@ -398,7 +398,8 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.rand( &result );
+			//stat = op.rand( &result );
+			stat = op.rand_zerocopy( &result );
 		}
 		catch(std::exception &e)
 		{

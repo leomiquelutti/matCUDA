@@ -15,6 +15,7 @@ namespace matCUDA
 	public:
 
 		curandStatus_t rand( Array<TElement> *out );
+		curandStatus_t rand_zerocopy( Array<TElement> *out );
 	};
 }
 
