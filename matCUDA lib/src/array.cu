@@ -1236,6 +1236,7 @@ template<> __host__ void cudaEye( ComplexFloat *a, __int32 size )
 
 	//cudaEye_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
 	cudaEye_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( (cuFloatComplex *)a, size );
+	CUDA_CALL( cudaDeviceSynchronize() );
 }
 
 template<> __host__ void cudaEye( ComplexDouble *a, __int32 size )
@@ -1245,6 +1246,7 @@ template<> __host__ void cudaEye( ComplexDouble *a, __int32 size )
 
 	//cudaEye_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
 	cudaEye_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( (cuDoubleComplex *)a, size );
+	CUDA_CALL( cudaDeviceSynchronize() );
 }
 
 template <typename T>
@@ -1255,6 +1257,7 @@ __host__ void cudaEye(T *a, __int32 size)
 
 	//cudaEye_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
 	cudaEye_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
+	CUDA_CALL( cudaDeviceSynchronize() );
 }
 
 template __host__ void cudaEye( int *a, __int32 size );

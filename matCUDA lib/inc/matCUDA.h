@@ -56,6 +56,9 @@ namespace matCUDA
 		// info from base classes
 		const ArrayData<TElement>* GetArrayData() const { return &m_data; }
 		ArrayDescriptor& GetDescriptor();
+		TElement *data() { return m_data.m_data; };
+		size_t			getDim( index_t dim ) { return this->GetDescriptor().GetDim( dim ); };
+		size_t			getNDim() { return this->GetDescriptor().GetNDim(); };
 
 		// operators
 		bool operator == (Array<TElement> a);
@@ -76,8 +79,6 @@ namespace matCUDA
 		Array<TElement>& operator -= (Array<TElement> &a); // gpu
 		Array<TElement>& operator *= (Array<TElement> &a); // gpu
 
-		// get m_data pointer
-		TElement *data() { return m_data.m_data; };
 
 		// functions
 		Array<TElement> acos();
@@ -96,13 +97,12 @@ namespace matCUDA
 		Array<TElement> diff();
 		Array<TElement> eig( Array<TElement> *eigenvectors ); // gpu + cpu
 		Array<TElement> fft(); // gpu
-		size_t			getDim( index_t dim ) { return this->GetDescriptor().GetDim( dim ); };
-		size_t			getNDim() { return this->GetDescriptor().GetNDim(); };
 		Array<TElement> getColumn( const index_t col );
 		Array<TElement> hermitian(); // gpu
 		Array<TElement> invert(); // gpu
 		Array<TElement> LS( Array<TElement> A ); // gpu
 		void			LU( Array<TElement> *L, Array<TElement> *U, Array<TElement> *P ); // gpu
+		void			LU( Array<TElement> *L, Array<TElement> *U ); // gpu
 		Array<TElement>	max(); // gpu
 		Array<TElement>	max( Array<TElement> *idx ); // gpu
 		Array<TElement>	min(); // gpu

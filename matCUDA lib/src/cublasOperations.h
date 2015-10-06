@@ -29,6 +29,7 @@ namespace matCUDA
 
 		// C = A + B
 		cublasStatus_t add( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, std::string );
+		cublasStatus_t add_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, std::string );
 
 		// transpose
 		cublasStatus_t transpose( Array<TElement> *A, Array<TElement> *C );
@@ -50,6 +51,7 @@ namespace matCUDA
 
 		// LU decomposition
 		cublasStatus_t LU( Array<TElement> *A, Array<TElement> *LU, Array<TElement> *Pivot );
+		cublasStatus_t LU( Array<TElement> *A, Array<TElement> *LU );
 
 		// least square solution
 		cublasStatus_t LS( Array<TElement> A, Array<TElement> *x, Array<TElement> C );

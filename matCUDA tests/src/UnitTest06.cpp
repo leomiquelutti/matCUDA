@@ -379,7 +379,7 @@ void test_times_float_4()
 // matrix*v = v
 void test_times_float_5() 
 {
-	Array<float> m1(sizeSmall,sizeSmall);
+	Array<float> m1(2*sizeSmall,sizeSmall);
 	for (int i = 0; i < m1.GetDescriptor().GetDim( 0 ); i++) {
 		for (int j = 0; j < m1.GetDescriptor().GetDim( 1 ); j++)
 			m1(i,j) = 0.1f;
@@ -389,8 +389,8 @@ void test_times_float_5()
 	for (int i = 0; i < v2.GetDescriptor().GetDim( 0 ); i++)
 		v2(i) = 0.1f;
 
-	Array<float> v3(sizeSmall);
-	Array<float> v4(sizeSmall);
+	Array<float> v3(2*sizeSmall);
+	Array<float> v4(2*sizeSmall);
 	for (int i = 0; i < v4.GetDescriptor().GetDim( 0 ); i++)
 		v4(i) = float(sizeSmall)/100;
 

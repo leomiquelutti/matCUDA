@@ -114,9 +114,7 @@ void test_LS_complex_3()
 	Array<Complex> x = read_file_matrix<Complex>( std::string("unit_tests_files//test_LS_complex_3//x.txt") );
 	Array<Complex> control = read_file_matrix<Complex>( std::string("unit_tests_files//test_LS_complex_3//control.txt") );
 
-	tic();
 	Array<Complex> data = y.LS( x );
-	toc();
 
 	TEST_CALL( data, control, BOOST_CURRENT_FUNCTION );
 }
