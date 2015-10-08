@@ -9,10 +9,10 @@ void example()
 {
 	size_t size = 1024;
 
-	// creates Array object (vector) of type std::complex<double> with size random elements
+	// creates Array object (vector) of type std::complex<double> with "size" random elements
 	Array<ComplexDouble> v1 = rand<ComplexDouble>( size );
 
-	// creates Array object (matrix) of type std::complex<double> with size*size random elements
+	// creates Array object (matrix) of type std::complex<double> with "size*size" random elements
 	Array<ComplexDouble> m1 = rand<ComplexDouble>( size, size );
 
 	// multiplies m1 times v1 adn stores in v2
