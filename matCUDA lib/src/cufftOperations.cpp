@@ -356,16 +356,16 @@ namespace matCUDA
 		CUDA_CALL( cudaMemcpyAsync( dataIn, in->data(), size_in, cudaMemcpyHostToDevice, stream ) );
 		
 		/////***** performance test *****/////
-		CUDA_CALL( cudaDeviceSynchronize() );
-		tic();		
-		for( int i = 0; i < 10; i++ ) {
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//tic();		
+		//for( int i = 0; i < 10; i++ ) {
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_Z2Z, BATCH, workSize ) ); 
 
 		CUFFT_CALL( cufftExecZ2Z(plan, dataIn, dataOut, CUFFT_FORWARD) );
 
-		}
-		CUDA_CALL( cudaDeviceSynchronize() );
-		toc();
+		//}
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//toc();
 		////***** end of performance test *****/////
 
 		CUDA_CALL( cudaMemcpyAsync( out->data(), dataOut, size_out, cudaMemcpyDeviceToHost, stream ) );

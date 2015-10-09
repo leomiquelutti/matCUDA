@@ -1101,9 +1101,7 @@ namespace matCUDA
 				(m_indexer->GetDescriptor().GetNDim() != 2) ||
 					(a.GetDescriptor().GetNDim() != 2))
 			return *this;
-	
-		cublasOperations<TElement> op;
-		cublasStatus_t stat = CUBLAS_STATUS_NOT_INITIALIZED;
+
 		Array<TElement> result( m_indexer->GetDescriptor().GetDim(0), a.m_indexer->GetDescriptor().GetDim(1) );
 
 		try
@@ -1366,11 +1364,10 @@ namespace matCUDA
 			return (*this)(0,0);
 
 		Array<ComplexFloat> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-		Array<ComplexFloat> Pivot = eye<ComplexFloat>( this->GetDescriptor().GetDim(0) );
 
 		try
 		{
-			stat = op.LU( this, &LU, &Pivot );
+			stat = op.LU( this, &LU );
 		
 			for( int i = 0; i < m_indexer->GetDescriptor().GetDim(1); i++ )
 				det *= LU(i,i);
@@ -1393,11 +1390,10 @@ namespace matCUDA
 			return (*this)(0,0);
 
 		Array<ComplexDouble> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-		Array<ComplexDouble> Pivot = eye<ComplexDouble>( this->GetDescriptor().GetDim(0) );
 
 		try
 		{
-			stat = op.LU( this, &LU, &Pivot );
+			stat = op.LU( this, &LU );
 		
 			for( int i = 0; i < m_indexer->GetDescriptor().GetDim(1); i++ )
 				det *= LU(i,i);
@@ -1421,11 +1417,10 @@ namespace matCUDA
 			return (*this)(0,0);
 
 		Array<TElement> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-		Array<TElement> Pivot = eye<TElement>( this->GetDescriptor().GetDim(0) );
 
 		try
 		{
-			stat = op.LU( this, &LU, &Pivot );
+			stat = op.LU( this, &LU );
 		
 			if( stat == CUBLAS_STATUS_SUCCESS ) {
 				for( int i = 0; i < m_indexer->GetDescriptor().GetDim(1); i++ )
@@ -1681,10 +1676,10 @@ namespace matCUDA
 
 		try
 		{
-			statCublas = opCublas.LU( this, U );
-			if( statCublas == CUBLAS_STATUS_SUCCESS )
-			//statCusolver = opCusolver.LU( this, U );
-			//if( statCusolver == CUSOLVER_STATUS_SUCCESS )
+			//statCublas = opCublas.LU( this, U );
+			//if( statCublas == CUBLAS_STATUS_SUCCESS )
+			statCusolver = opCusolver.LU( this, U );
+			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<TElement>( std::min(U->getDim(0),U->getDim(1)) );
 				for( int i = 0; i < U->getDim(0); i++ ) {

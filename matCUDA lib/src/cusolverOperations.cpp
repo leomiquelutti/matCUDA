@@ -17,6 +17,7 @@ namespace matCUDA
 		size_t minMN = std::min(M,N);
 
 		TElement *d_A, *Workspace, *d_B;
+		int INFOh = 2;
 
 		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
 		CUDA_CALL( cudaMalloc(&d_B, M * N * sizeof(TElement)) );
@@ -33,13 +34,17 @@ namespace matCUDA
 		size_t size_pivot = std::min(data->getDim(0),data->getDim(1));
 		
 		CUDA_CALL( cudaMalloc( &devIpiv, size_pivot * sizeof(int) ) );
-		CUDA_CALL( cudaMalloc( &devInfo, sizeof(int) ) );
+		CUDA_CALL( cudaMalloc( &devInfo, sizeof(int) ) );		
+		
+		/////***** performance test *****/////
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//tic();		
+		//for( int i = 0; i < 10; i++ ) {
 
 		CUSOLVER_CALL( cusolverDnTgetrf( &handle, M, N, d_A, M, Workspace, devIpiv, devInfo ) );
 		CUDA_CALL( cudaDeviceSynchronize() );
 
 		// copy from GPU
-		int INFOh = 2;
 		CUDA_CALL( cudaMemcpy( &INFOh, devInfo, sizeof( int ), cudaMemcpyDeviceToHost ) );
 
 		if( INFOh > 0 )
@@ -49,6 +54,12 @@ namespace matCUDA
 		}
 
 		CUSOLVER_CALL( cusolverDnTgetrs( &handle, CUBLAS_OP_N, data->getDim(0), data->getDim(1), d_A, data->getDim(0), devIpiv, d_B, data->getDim(0), devInfo ) );
+
+		//}
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//toc();
+		////***** end of performance test *****/////
+
 		CUDA_CALL( cudaDeviceSynchronize() );
 
 		// copy from GPU
@@ -247,8 +258,19 @@ namespace matCUDA
 		
 		CUDA_CALL( cudaMalloc( &devIpiv, size_pivot * sizeof(int) ) );
 		CUDA_CALL( cudaMalloc( &devInfo, sizeof(int) ) );
+		
+		/////***** performance test *****/////
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//tic();		
+		//for( int i = 0; i < 10; i++ ) {
 
 		CUSOLVER_CALL( cusolverDnTgetrf( &handle, M, N, d_A, M, Workspace, devIpiv, devInfo ) );
+
+		//}
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//toc();
+		////***** end of performance test *****/////
+
 		CUDA_CALL( cudaDeviceSynchronize() );
 
 		// copy from GPU
