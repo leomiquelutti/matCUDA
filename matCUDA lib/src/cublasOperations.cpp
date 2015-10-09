@@ -310,22 +310,22 @@ namespace matCUDA
 	// least square solution
 
 	template <typename TElement>
-	cublasStatus_t cublasOperations<TElement>::LS( Array<TElement> A, Array<TElement> *x, Array<TElement> C )
+	cublasStatus_t cublasOperations<TElement>::LS( Array<TElement> *A, Array<TElement> *x, Array<TElement> *C )
 	{	
 		cublasHandle_t handle;
 		cublasCreate_v2(&handle);
 
-		if( A.GetDescriptor().GetNDim() != 2 ||
-			C.GetDescriptor().GetNDim() != 2 )
+		if( A->GetDescriptor().GetNDim() != 2 ||
+			C->GetDescriptor().GetNDim() != 2 )
 			return CUBLAS_STATUS_NOT_INITIALIZED;
-		if( A.GetDescriptor().GetDim(0) < A.GetDescriptor().GetDim(1) )
+		if( A->GetDescriptor().GetDim(0) < A->GetDescriptor().GetDim(1) )
 			return CUBLAS_STATUS_NOT_INITIALIZED;
 	
 		_matrixSize matrix_size;
-		matrix_size.Acols = A.GetDescriptor().GetDim(1);
-		matrix_size.Arows = A.GetDescriptor().GetDim(0);
-		matrix_size.Ccols = C.GetDescriptor().GetDim(1);
-		matrix_size.Crows = C.GetDescriptor().GetDim(0);
+		matrix_size.Acols = A->GetDescriptor().GetDim(1);
+		matrix_size.Arows = A->GetDescriptor().GetDim(0);
+		matrix_size.Ccols = C->GetDescriptor().GetDim(1);
+		matrix_size.Crows = C->GetDescriptor().GetDim(0);
 
 		CUBLAS_CALL(cublasCreate(&handle));
 
@@ -357,8 +357,8 @@ namespace matCUDA
 		unsigned int nhrs = matrix_size.Ccols;
 
 		// copy to GPU
-		CUBLAS_CALL( cublasSetMatrix( matrix_size.Arows, matrix_size.Acols, sizeof(TElement), A.m_data.GetElements(), lda, d_A, lda ) );
-		CUBLAS_CALL( cublasSetMatrix( matrix_size.Crows, matrix_size.Ccols, sizeof(TElement), C.m_data.GetElements(), ldc, d_C, ldc ) );
+		CUBLAS_CALL( cublasSetMatrix( matrix_size.Arows, matrix_size.Acols, sizeof(TElement), A->m_data.GetElements(), lda, d_A, lda ) );
+		CUBLAS_CALL( cublasSetMatrix( matrix_size.Crows, matrix_size.Ccols, sizeof(TElement), C->m_data.GetElements(), ldc, d_C, ldc ) );
 
 		//copy ptr_to_A references to device
 		CUDA_CALL( cudaMemcpy(Aarray,ptr_to_A, sizeof(TElement*), cudaMemcpyHostToDevice) );
@@ -379,11 +379,11 @@ namespace matCUDA
 			return CUBLAS_STATUS_EXECUTION_FAILED;
 		}
 
-		C.m_padded = false;
-		CUDA_CALL( cudaMemcpy( C.m_data.GetElements(), d_C, C.m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		//C->m_padded = false;
+		CUDA_CALL( cudaMemcpy( C->m_data.GetElements(), d_C, C->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 		for( int i = 0; i< x->GetDescriptor().GetDim( 0 ); i++ ) {
 			for( int j = 0; j < x->GetDescriptor().GetDim( 1 ); j++ )
-				(*x)( i, j ) = C( i, j );
+				(*x)( i, j ) = (*C)( i, j );
 		}
 
 		// free memory
@@ -399,11 +399,111 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	template cublasStatus_t cublasOperations<int>::LS( Array<int> A, Array<int> *x, Array<int> C );
-	template cublasStatus_t cublasOperations<float>::LS( Array<float> A, Array<float> *x, Array<float> C );
-	template cublasStatus_t cublasOperations<double>::LS( Array<double> A, Array<double> *x, Array<double> C );
-	template cublasStatus_t cublasOperations<ComplexFloat>::LS( Array<ComplexFloat> A, Array<ComplexFloat> *x, Array<ComplexFloat> C );
-	template cublasStatus_t cublasOperations<ComplexDouble>::LS( Array<ComplexDouble> A, Array<ComplexDouble> *x, Array<ComplexDouble> C );
+	template cublasStatus_t cublasOperations<int>::LS( Array<int> *A, Array<int> *x, Array<int> *C );
+	template cublasStatus_t cublasOperations<float>::LS( Array<float> *A, Array<float> *x, Array<float> *C );
+	template cublasStatus_t cublasOperations<double>::LS( Array<double> *A, Array<double> *x, Array<double> *C );
+	template cublasStatus_t cublasOperations<ComplexFloat>::LS( Array<ComplexFloat> *A, Array<ComplexFloat> *x, Array<ComplexFloat> *C );
+	template cublasStatus_t cublasOperations<ComplexDouble>::LS( Array<ComplexDouble> *A, Array<ComplexDouble> *x, Array<ComplexDouble> *C );
+
+	template <typename TElement>
+	cublasStatus_t cublasOperations<TElement>::LS_zerocopy( Array<TElement> *A, Array<TElement> *x, Array<TElement> *C )
+	{	
+		cublasHandle_t handle;
+		cublasCreate_v2(&handle);
+
+		if( A->GetDescriptor().GetNDim() != 2 ||
+			C->GetDescriptor().GetNDim() != 2 )
+			return CUBLAS_STATUS_NOT_INITIALIZED;
+		if( A->GetDescriptor().GetDim(0) < A->GetDescriptor().GetDim(1) )
+			return CUBLAS_STATUS_NOT_INITIALIZED;
+	
+		_matrixSize matrix_size;
+		matrix_size.Acols = A->GetDescriptor().GetDim(1);
+		matrix_size.Arows = A->GetDescriptor().GetDim(0);
+		matrix_size.Ccols = C->GetDescriptor().GetDim(1);
+		matrix_size.Crows = C->GetDescriptor().GetDim(0);
+
+		CUBLAS_CALL(cublasCreate(&handle));
+
+		unsigned int size_A = matrix_size.Acols * matrix_size.Arows;
+		unsigned int size_C = matrix_size.Ccols * matrix_size.Crows;
+
+		// define device memory
+		TElement *d_A, *d_C, **Aarray = NULL, **Carray = NULL;
+		int infoArray, *devInfoArray;
+	
+		cudaDeviceProp deviceProp;
+		int devID = 0;
+		CUDA_CALL(cudaGetDeviceProperties(&deviceProp, devID));
+
+		// allocate memmory
+		CUDA_CALL( cudaMalloc(&Aarray,  sizeof(TElement*) * BATCHSIZE) );
+		CUDA_CALL( cudaMalloc(&Carray,  sizeof(TElement*) * BATCHSIZE) );
+		CUBLAS_CALL( cublasAlloc( size_A, sizeof(TElement)*BATCHSIZE, (void **) &d_A ) );
+		//CUBLAS_CALL( cublasAlloc( size_C, sizeof(TElement)*BATCHSIZE, (void **) &d_C ) );
+		CUBLAS_CALL( cublasAlloc( BATCHSIZE, sizeof(int)*BATCHSIZE, (void **) &devInfoArray ) );
+
+		// pass host pointer to device
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->data(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &d_C, C->data(), 0 ) );
+
+		//save matrix address 
+		const TElement *ptr_to_A[1], *ptr_to_C[1];
+		ptr_to_A[0] = d_A;
+		ptr_to_C[0] = d_C;
+	
+		const int lda = matrix_size.Arows;
+		const int ldc = matrix_size.Crows;
+		unsigned int nhrs = matrix_size.Ccols;
+
+		//// copy to GPU
+		CUBLAS_CALL( cublasSetMatrix( matrix_size.Arows, matrix_size.Acols, sizeof(TElement), A->m_data.GetElements(), lda, d_A, lda ) );
+		//CUBLAS_CALL( cublasSetMatrix( matrix_size.Crows, matrix_size.Ccols, sizeof(TElement), C->m_data.GetElements(), ldc, d_C, ldc ) );
+
+		//copy ptr_to_A references to device
+		CUDA_CALL( cudaMemcpy(Aarray,ptr_to_A, sizeof(TElement*), cudaMemcpyHostToDevice) );
+		CUDA_CALL( cudaMemcpy(Carray,ptr_to_C, sizeof(TElement*), cudaMemcpyHostToDevice) );
+
+		// CALL CUBLAS FUNCTION
+		CUBLAS_CALL( cublasTgelsBatched( handle, CUBLAS_OP_N, matrix_size.Arows, matrix_size.Acols, matrix_size.Ccols, Aarray, lda, Carray, ldc, &infoArray, devInfoArray, BATCHSIZE ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// copy from GPU
+		int INFOh;
+		CUDA_CALL( cudaMemcpy( &INFOh, devInfoArray, sizeof( int ), cudaMemcpyDeviceToHost ) );
+
+		if( infoArray != 0 )
+		{
+			printf("Parameter invalid for cublas<type>gelsBatched: %d\n", -INFOh);
+			cublasShutdown();
+			return CUBLAS_STATUS_EXECUTION_FAILED;
+		}
+
+		//C->m_padded = false;
+		//CUDA_CALL( cudaMemcpy( C->m_data.GetElements(), d_C, C->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		for( int i = 0; i< x->GetDescriptor().GetDim( 0 ); i++ ) {
+			for( int j = 0; j < x->GetDescriptor().GetDim( 1 ); j++ )
+				(*x)( i, j ) = (*C)( i, j );
+		}
+
+		// free memory
+		CUBLAS_CALL( cublasFree( d_A ) );
+		//CUBLAS_CALL( cublasFree( d_C ) );
+		CUBLAS_CALL( cublasFree( Aarray ) );
+		CUBLAS_CALL( cublasFree( Carray ) );
+		CUBLAS_CALL( cublasFree( devInfoArray ) );
+	
+		// Destroy the handle
+		CUBLAS_CALL(cublasDestroy(handle));
+
+		return CUBLAS_STATUS_SUCCESS;
+	}
+
+	template cublasStatus_t cublasOperations<int>::LS_zerocopy( Array<int> *A, Array<int> *x, Array<int> *C );
+	template cublasStatus_t cublasOperations<float>::LS_zerocopy( Array<float> *A, Array<float> *x, Array<float> *C );
+	template cublasStatus_t cublasOperations<double>::LS_zerocopy( Array<double> *A, Array<double> *x, Array<double> *C );
+	template cublasStatus_t cublasOperations<ComplexFloat>::LS_zerocopy( Array<ComplexFloat> *A, Array<ComplexFloat> *x, Array<ComplexFloat> *C );
+	template cublasStatus_t cublasOperations<ComplexDouble>::LS_zerocopy( Array<ComplexDouble> *A, Array<ComplexDouble> *x, Array<ComplexDouble> *C );
 
 	// implementation on inversion
 
@@ -718,10 +818,19 @@ namespace matCUDA
 
 		//copy matrices references to device
 		CUDA_CALL( cudaMemcpy(Aarray,matrices, sizeof(TElement*), cudaMemcpyHostToDevice) );
+		
+		/////***** performance test *****/////
+		CUDA_CALL( cudaDeviceSynchronize() );
+		tic();
+		for( int i = 0; i < 1; i++ ) {
 
 		// CALL CUBLAS FUNCTION
 		CUBLAS_CALL( cublasTgetrfBatched( handle, matrix_size.Arows, Aarray, lda, PivotArray, infoArray, BATCHSIZE ) );
+
+		}
 		CUDA_CALL( cudaDeviceSynchronize() );
+		toc();
+		////***** end of performance test *****/////
 
 		// copy from GPU
 		int INFOh = 2;
@@ -1151,12 +1260,18 @@ namespace matCUDA
 		CUDA_CALL( cudaMemcpy( d_A, A->data(), size_A, cudaMemcpyHostToDevice ) );
 		CUDA_CALL( cudaMemcpy( d_B, B->data(), size_B, cudaMemcpyHostToDevice ) );
 		
-		// CALL CUBLAS FUNCTION
+		/////***** performance test *****/////
+		//CUDA_CALL( cudaDeviceSynchronize() );
 		//tic();
-		//for( int i = 0; i < 10; i++ )
+		//for( int i = 0; i < 10; i++ ) {
+		
+		// CALL CUBLAS FUNCTION
 		CUBLAS_CALL(cublasTgeam( handle, op1, op2, matrix_size.Arows, matrix_size.Bcols, &alpha, d_A, matrix_size.Arows, &beta, d_B, matrix_size.Brows, d_C, matrix_size.Crows ));
+		
+		//}
 		//CUDA_CALL( cudaDeviceSynchronize() );
 		//toc();
+		////***** end of performance test *****/////
 		
 		CUDA_CALL( cudaMemcpy( C->data(), d_C, size_C, cudaMemcpyDeviceToHost ) );
 		CUDA_CALL( cudaDeviceSynchronize() );
@@ -1357,6 +1472,52 @@ namespace matCUDA
 	template cublasStatus_t cublasOperations<double>::multiply( Array<double> *A, Array<double> *B, Array<double> *C );
 	template cublasStatus_t cublasOperations<ComplexFloat>::multiply( Array<ComplexFloat> *A, Array<ComplexFloat> *B, Array<ComplexFloat> *C );
 	template cublasStatus_t cublasOperations<ComplexDouble>::multiply( Array<ComplexDouble> *A, Array<ComplexDouble> *B, Array<ComplexDouble> *C );
+
+	template <typename TElement>
+	cublasStatus_t cublasOperations<TElement>::multiply_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C )
+	{
+		_matrixSize matrix_size;
+		matrix_size.Acols = A->GetDescriptor().GetDim(1);
+		matrix_size.Arows = A->GetDescriptor().GetDim(0);
+		matrix_size.Bcols = B->GetDescriptor().GetDim(1);
+		matrix_size.Brows = B->GetDescriptor().GetDim(0);
+		matrix_size.Ccols = C->GetDescriptor().GetDim(1);
+		matrix_size.Crows = C->GetDescriptor().GetDim(0);
+
+		if(matrix_size.Arows == 1 && matrix_size.Bcols == 1 )
+		{
+			// implement "vector(Transp) x vector = scalar" (dot function)
+			CUBLAS_CALL( multiply_VectorTranspVector_Scalar_zerocopy( A, B, C, matrix_size ) );
+		}
+		else if(matrix_size.Arows > 1 && matrix_size.Bcols == 1 && (matrix_size.Acols > 1 || matrix_size.Brows > 1))
+		{
+			// implement "matrix x vector = vector"
+			CUBLAS_CALL( multiply_MatrixVector_Vector_zerocopy( A, B, C, matrix_size ) );
+		}
+		else if(matrix_size.Acols == 1 && matrix_size.Bcols > 1)
+		{
+			// implement "vector(Transp) x vector = matrix"
+			CUBLAS_CALL( multiply_VectorVectorTransp_Matrix_zerocopy( A, B, C, matrix_size ) );
+		}
+		else if(matrix_size.Arows > 1 && matrix_size.Bcols > 1)
+		{
+			// implement "matrix x matrix = matrix"
+			CUBLAS_CALL( multiply_MatrixMatrix_Matrix_Xt( A, B, C, matrix_size ) );
+		}
+		else if(matrix_size.Arows == 1 && matrix_size.Bcols > 1)
+		{
+			// implement "vector(Transp) x matrix = vector(Transp)"
+			CUBLAS_CALL( multiply_VectorTranspMatrix_VectorTransp_zerocopy( A, B, C, matrix_size ) );
+		}
+
+		return CUBLAS_STATUS_SUCCESS;
+	}
+
+	template cublasStatus_t cublasOperations<int>::multiply_zerocopy( Array<int> *A, Array<int> *B, Array<int> *C );
+	template cublasStatus_t cublasOperations<float>::multiply_zerocopy( Array<float> *A, Array<float> *B, Array<float> *C );
+	template cublasStatus_t cublasOperations<double>::multiply_zerocopy( Array<double> *A, Array<double> *B, Array<double> *C );
+	template cublasStatus_t cublasOperations<ComplexFloat>::multiply_zerocopy( Array<ComplexFloat> *A, Array<ComplexFloat> *B, Array<ComplexFloat> *C );
+	template cublasStatus_t cublasOperations<ComplexDouble>::multiply_zerocopy( Array<ComplexDouble> *A, Array<ComplexDouble> *B, Array<ComplexDouble> *C );
 
 	// implementation of Matrix x Matrix = Matrix
 
@@ -1579,6 +1740,49 @@ namespace matCUDA
 		cudaDeviceProp deviceProp;
 		int devID = 0;
 		CUDA_CALL(cudaGetDeviceProperties(&deviceProp, devID));
+
+		// allocate memory
+		CUDA_CALL( cudaMalloc( &d_A, mem_size_A ) );
+		CUDA_CALL( cudaMalloc( &d_B, mem_size_B ) );
+	
+		// copy to device
+		CUDA_CALL( cudaMemcpy( d_A, A->data(), mem_size_A, cudaMemcpyHostToDevice ) );
+		CUDA_CALL( cudaMemcpy( d_B, B->data(), mem_size_B, cudaMemcpyHostToDevice ) );
+
+		// CALL CUBLAS FUNCTION
+		CUBLAS_CALL( cublasTdot( handle, imax( matrix_size.Acols, matrix_size.Arows ), d_A, 1, d_B, 1, &d_C ) );	
+		CUDA_CALL( cudaDeviceSynchronize()) ;
+	
+		*C->m_data.m_data = d_C;
+
+		CUDA_CALL( cudaFree( d_A ) );
+		CUDA_CALL( cudaFree( d_B ) );
+
+		// Destroy the handle
+		CUBLAS_CALL(cublasDestroy(handle));
+
+		return CUBLAS_STATUS_SUCCESS;
+	}
+
+	template <typename TElement>
+	cublasStatus_t cublasOperations<TElement>::multiply_VectorTranspVector_Scalar_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size )
+	{
+		cublasHandle_t handle;
+		CUBLAS_CALL(cublasCreate(&handle));
+		CUBLAS_CALL( cublasInit() );
+
+		// define host memory size for matrices A and B
+		unsigned int size_A = matrix_size.Acols * matrix_size.Arows;
+		unsigned int mem_size_A = sizeof(TElement) * size_A;
+		unsigned int size_B = matrix_size.Bcols * matrix_size.Brows;
+		unsigned int mem_size_B = sizeof(TElement) * size_B;
+
+		// define device memory
+		TElement *d_A, *d_B, d_C;
+	
+		cudaDeviceProp deviceProp;
+		int devID = 0;
+		CUDA_CALL(cudaGetDeviceProperties(&deviceProp, devID));
 	
 		// set device pointer to host memory
 		CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->m_data.GetElements(), 0 ) );
@@ -1600,6 +1804,61 @@ namespace matCUDA
 
 	template <typename TElement>
 	cublasStatus_t cublasOperations<TElement>::multiply_VectorVectorTransp_Matrix( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size )
+	{
+		cublasHandle_t handle;
+		CUBLAS_CALL(cublasCreate(&handle));	
+		CUBLAS_CALL( cublasInit() );
+	
+		// define host memory size for matrices A and B
+		unsigned int size_A = matrix_size.Acols * matrix_size.Arows;
+		unsigned int size_B = matrix_size.Bcols * matrix_size.Brows;
+		unsigned int size_C = matrix_size.Ccols * matrix_size.Crows;
+	
+		// define device memory
+		TElement *d_A, *d_B, *d_C;
+	
+		cudaDeviceProp deviceProp;
+		int devID = 0;
+		CUDA_CALL(cudaGetDeviceProperties(&deviceProp, devID));
+
+		const TElement alpha = 1.0;
+		const int incx = 1;
+		const int incy = 1;
+		const int lda = matrix_size.Crows;
+		const int ldb = lda;
+	
+		// allocate memmory
+		CUBLAS_CALL( cublasAlloc( size_A, sizeof(TElement), (void **) &d_A ) );
+		CUBLAS_CALL( cublasAlloc( size_B, sizeof(TElement), (void **) &d_B ) );
+		CUBLAS_CALL( cublasAlloc( size_C, sizeof(TElement), (void **) &d_C ) );
+
+		// copy vectors to GPU
+		CUBLAS_CALL( cublasSetVector( size_A, sizeof(TElement), A->data(), incx, d_A, incy ) );
+		CUBLAS_CALL( cublasSetVector( size_B, sizeof(TElement), B->data(), incx, d_B, incy ) );
+		CUBLAS_CALL( cublasSetMatrix( matrix_size.Crows, matrix_size.Ccols, sizeof(TElement), C->data(), matrix_size.Crows, d_C, matrix_size.Crows ) );
+	
+		CUDA_CALL( cudaDeviceSynchronize() );
+		//// CALL CUBLAS FUNCTION
+		CUBLAS_CALL( cublasTger( handle, matrix_size.Crows, matrix_size.Ccols, &alpha, d_A, incx, d_B, incy, d_C, lda ) );	
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// copy result from device to host
+		CUBLAS_CALL( cublasGetMatrix( matrix_size.Crows, matrix_size.Ccols, sizeof(TElement), d_C, lda, C->data(), ldb ) );
+		//CUBLAS_CALL( cublasGetMatrix( matrix_size.Crows, matrix_size.Ccols, sizeof(TElement), d_C, lda, C->data(), ldb ) );
+		//CUDA_CALL( cudaMemcpy( C->data(), d_C, size_C, cudaMemcpyDeviceToHost ) );
+
+		CUDA_CALL( cudaFree( d_A ) );
+		CUDA_CALL( cudaFree( d_B ) );
+		CUDA_CALL( cudaFree( d_C ) );
+	
+		// Destroy the handle
+		CUBLAS_CALL(cublasDestroy(handle));
+	
+		return CUBLAS_STATUS_SUCCESS;
+	}
+
+	template <typename TElement>
+	cublasStatus_t cublasOperations<TElement>::multiply_VectorVectorTransp_Matrix_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size )
 	{
 		cublasHandle_t handle;
 		CUBLAS_CALL(cublasCreate(&handle));	
@@ -1638,13 +1897,14 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	// Implementation of matrix x vector = vector OR vector(transp) x matrix = vector(transp)
+	// Implementation of matrix x vector = vector
 
 	template <typename TElement>
 	cublasStatus_t cublasOperations<TElement>::multiply_MatrixVector_Vector( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size )
 	{
 		cublasHandle_t handle;
-		CUBLAS_CALL(cublasCreate(&handle));	
+		CUBLAS_CALL(cublasCreate(&handle));		
+		CUBLAS_CALL( cublasInit() );
 
 		if (C->GetDescriptor().GetDim(0) == 1)
 		{		
@@ -1656,8 +1916,70 @@ namespace matCUDA
 			matrix_size.Ccols = C->GetDescriptor().GetDim(1);
 			matrix_size.Crows = C->GetDescriptor().GetDim(0);
 		};
+
+		// define host memory size for matrices A and B
+		unsigned int size_A = matrix_size.Acols * matrix_size.Arows;
+		unsigned int size_B = matrix_size.Bcols * matrix_size.Brows;
+		unsigned int size_C = matrix_size.Ccols * matrix_size.Crows;
+
+		// define device memory
+		TElement *d_A, *d_B, *d_C;
 	
+		cudaDeviceProp deviceProp;
+		int devID = 0;
+		CUDA_CALL(cudaGetDeviceProperties(&deviceProp, devID));
+	
+		// allocate memmory
+		CUBLAS_CALL( cublasAlloc( size_A, sizeof(TElement), (void **) &d_A ) );
+		CUBLAS_CALL( cublasAlloc( size_B, sizeof(TElement), (void **) &d_B ) );
+		CUBLAS_CALL( cublasAlloc( size_C, sizeof(TElement), (void **) &d_C ) );
+
+		// copy vectors to GPU
+		CUBLAS_CALL( cublasSetMatrix( matrix_size.Arows, matrix_size.Acols, sizeof(TElement), A->m_data.GetElements(), matrix_size.Arows, d_A, matrix_size.Arows ) );
+		CUBLAS_CALL( cublasSetVector( size_B, sizeof(TElement), B->m_data.GetElements(), 1, d_B, 1 ) );
+
+		const TElement alpha = 1.0;
+		const TElement beta = 0;
+		const int incx = 1;
+		const int incy = 1;
+		const int lda = matrix_size.Crows;
+		const int ldb = lda;
+
+		// CALL CUBLAS FUNCTION
+		CUBLAS_CALL( cublasTgemv( handle, CUBLAS_OP_N, matrix_size.Arows, matrix_size.Acols, &alpha, d_A, lda, d_B, incx, &beta, d_C, incy ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// copy result from device to host
+		CUBLAS_CALL( cublasGetVector( matrix_size.Crows, sizeof(TElement), d_C, incx, C->m_data.GetElements(), incy ) );
+
+		// free memory
+		CUBLAS_CALL( cublasFree( d_A ) );
+		CUBLAS_CALL( cublasFree( d_B ) );
+		CUBLAS_CALL( cublasFree( d_C ) );
+
+		// Destroy the handle
+		CUBLAS_CALL(cublasDestroy(handle));
+
+		return CUBLAS_STATUS_SUCCESS;
+	}
+		
+	template <typename TElement>
+	cublasStatus_t cublasOperations<TElement>::multiply_MatrixVector_Vector_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size )
+	{
+		cublasHandle_t handle;
+		CUBLAS_CALL(cublasCreate(&handle));		
 		CUBLAS_CALL( cublasInit() );
+
+		if (C->GetDescriptor().GetDim(0) == 1)
+		{		
+			//*C = C->transpose();
+			matrix_size.Acols = A->GetDescriptor().GetDim(1);
+			matrix_size.Arows = A->GetDescriptor().GetDim(0);
+			matrix_size.Bcols = B->GetDescriptor().GetDim(1);
+			matrix_size.Brows = B->GetDescriptor().GetDim(0);
+			matrix_size.Ccols = C->GetDescriptor().GetDim(1);
+			matrix_size.Crows = C->GetDescriptor().GetDim(0);
+		};
 
 		// define host memory size for matrices A and B
 		unsigned int size_A = matrix_size.Acols * matrix_size.Arows;
@@ -1676,15 +1998,6 @@ namespace matCUDA
 		CUDA_CALL( cudaHostGetDevicePointer( &d_B, B->m_data.GetElements(), 0 ) );
 		CUDA_CALL( cudaHostGetDevicePointer( &d_C, C->m_data.GetElements(), 0 ) );
 	
-		//// allocate memmory
-		//CUBLAS_CALL( cublasAlloc( size_A, sizeof(TElement), (void **) &d_A ) );
-		//CUBLAS_CALL( cublasAlloc( size_B, sizeof(TElement), (void **) &d_B ) );
-		//CUBLAS_CALL( cublasAlloc( size_C, sizeof(TElement), (void **) &d_C ) );
-
-		//// copy vectors to GPU
-		//CUBLAS_CALL( cublasSetMatrix( matrix_size.Arows, matrix_size.Acols, sizeof(TElement), A->m_data.GetElements(), matrix_size.Arows, d_A, matrix_size.Arows ) );
-		//CUBLAS_CALL( cublasSetVector( size_B, sizeof(TElement), B->m_data.GetElements(), 1, d_B, 1 ) );
-
 		const TElement alpha = 1.0;
 		const TElement beta = 0;
 		const int incx = 1;
@@ -1694,17 +2007,7 @@ namespace matCUDA
 
 		// CALL CUBLAS FUNCTION
 		CUBLAS_CALL( cublasTgemv( handle, CUBLAS_OP_N, matrix_size.Arows, matrix_size.Acols, &alpha, d_A, lda, d_B, incx, &beta, d_C, incy ) );
-	
-		cudaDeviceSynchronize();
-		cudaError_t error = cudaGetLastError();
-
-		//// copy result from device to host
-		//CUBLAS_CALL( cublasGetVector( matrix_size.Crows, sizeof(TElement), d_C, incx, C->m_data.GetElements(), incy ) );
-
-		//// free memory
-		//CUBLAS_CALL( cublasFree( d_A ) );
-		//CUBLAS_CALL( cublasFree( d_B ) );
-		//CUBLAS_CALL( cublasFree( d_C ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
 
 		// Destroy the handle
 		CUBLAS_CALL(cublasDestroy(handle));
@@ -1712,8 +2015,72 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 		
+	// implementation of vector(transp) x matrix = vector(transp)
+
 	template <typename TElement>
 	cublasStatus_t cublasOperations<TElement>::multiply_VectorTranspMatrix_VectorTransp( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size )
+	{
+		cublasHandle_t handle;
+		CUBLAS_CALL(cublasCreate(&handle));	
+		CUBLAS_CALL( cublasInit() );
+
+		if (C->GetDescriptor().GetDim(0) == 1)
+		{		
+			matrix_size.Acols = A->GetDescriptor().GetDim(1);
+			matrix_size.Arows = A->GetDescriptor().GetDim(0);
+			matrix_size.Bcols = B->GetDescriptor().GetDim(1);
+			matrix_size.Brows = B->GetDescriptor().GetDim(0);
+			matrix_size.Ccols = C->GetDescriptor().GetDim(1);
+			matrix_size.Crows = C->GetDescriptor().GetDim(0);
+		};
+
+		// define host memory size for matrices A and B
+		unsigned int size_A = matrix_size.Acols * matrix_size.Arows * sizeof(TElement);
+		unsigned int size_B = matrix_size.Bcols * matrix_size.Brows * sizeof(TElement);
+		unsigned int size_C = matrix_size.Ccols * matrix_size.Crows * sizeof(TElement);
+
+		// define device memory
+		TElement *d_A, *d_B, *d_C;
+	
+		cudaDeviceProp deviceProp;
+		int devID = 0;
+		CUDA_CALL(cudaGetDeviceProperties(&deviceProp, devID));
+
+		// allocate memory
+		CUDA_CALL( cudaMalloc( &d_A, size_A ) );
+		CUDA_CALL( cudaMalloc( &d_B, size_B ) );
+		CUDA_CALL( cudaMalloc( &d_C, size_C ) );
+
+		// pass host pointer to device
+		CUDA_CALL( cudaMemcpy( d_A, A->data(), size_A, cudaMemcpyHostToDevice ) );
+		CUDA_CALL( cudaMemcpy( d_B, B->data(), size_B, cudaMemcpyHostToDevice ) );
+
+		const TElement alpha = 1.0f;
+		const TElement beta = 0;
+		const int incx = 1;
+		const int incy = 1;
+		const int lda = matrix_size.Arows;
+		const int ldb = matrix_size.Brows;
+
+		// CALL CUBLAS FUNCTION
+		CUBLAS_CALL( cublasTgemv( handle, CUBLAS_OP_T, matrix_size.Bcols, matrix_size.Brows, &alpha, d_B, ldb, d_A, incx, &beta, d_C, incy ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+	
+		CUDA_CALL( cudaMemcpy( C->data(), d_C, size_C, cudaMemcpyDeviceToHost ) );
+
+		// free memory
+		CUBLAS_CALL( cublasFree( d_A ) );
+		CUBLAS_CALL( cublasFree( d_B ) );
+		CUBLAS_CALL( cublasFree( d_C ) );
+
+		// Destroy the handle
+		CUBLAS_CALL(cublasDestroy(handle));
+
+		return CUBLAS_STATUS_SUCCESS;
+	}
+
+	template <typename TElement>
+	cublasStatus_t cublasOperations<TElement>::multiply_VectorTranspMatrix_VectorTransp_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size )
 	{
 		cublasHandle_t handle;
 		CUBLAS_CALL(cublasCreate(&handle));	
@@ -1755,14 +2122,16 @@ namespace matCUDA
 
 		// CALL CUBLAS FUNCTION
 		CUBLAS_CALL( cublasTgemv( handle, CUBLAS_OP_T, matrix_size.Bcols, matrix_size.Brows, &alpha, d_B, ldb, d_A, incx, &beta, d_C, incy ) );
-	
-		cudaDeviceSynchronize();
-		cudaError_t error = cudaGetLastError();
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// Destroy the handle
+		CUBLAS_CALL(cublasDestroy(handle));
 
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
 	// transform permutation vector into permutation matrix
+	// TODO (or redo) - too slow!!!
 
 	template <typename TElement>
 	void cublasOperations<TElement>::from_permutation_vector_to_permutation_matrix( Array<TElement> *pivotMatrix, Array<int> *pivotVector )
@@ -1809,6 +2178,7 @@ namespace matCUDA
 	}
 
 	// cublas wrappers
+
 	cublasStatus_t cublasOperations<int>::cublasTgeam( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const int *alpha, const int *A, int lda, const int *beta, const int *B, int ldb, int *C, int ldc)
 	{
 		return CUBLAS_STATUS_NOT_INITIALIZED;
@@ -1942,12 +2312,14 @@ namespace matCUDA
 	
 	cublasStatus_t cublasOperations<ComplexFloat>::cublasTger( cublasHandle_t handle, int m, int n, const ComplexFloat *alpha, const ComplexFloat *x, int incx, const ComplexFloat *y, int incy, ComplexFloat *A, int lda )
 	{
-		return cublasCgeru( handle, m, n, (const cuFloatComplex*)alpha, (const cuFloatComplex*)x, incx, (const cuFloatComplex*)y, incy, (cuFloatComplex*)A, lda );
+		const cuFloatComplex alpha2 = make_cuFloatComplex( alpha->real(), alpha->imag() );
+		return cublasCgeru( handle, m, n, &alpha2, (const cuFloatComplex*)x, incx, (const cuFloatComplex*)y, incy, (cuFloatComplex*)A, lda );
 	}
 	
 	cublasStatus_t cublasOperations<ComplexDouble>::cublasTger( cublasHandle_t handle, int m, int n, const ComplexDouble *alpha, const ComplexDouble *x, int incx, const ComplexDouble *y, int incy, ComplexDouble *A, int lda )
 	{
-		return cublasZgeru( handle, m, n, (const cuDoubleComplex*)alpha, (const cuDoubleComplex*)x, incx, (const cuDoubleComplex*)y, incy, (cuDoubleComplex*)A, lda );
+		const cuDoubleComplex alpha2 = make_cuDoubleComplex( alpha->real(), alpha->imag() );
+		return cublasZgeru( handle, m, n, &alpha2, (const cuDoubleComplex*)x, incx, (const cuDoubleComplex*)y, incy, (cuDoubleComplex*)A, lda );
 	}
 
 	cublasStatus_t cublasOperations<int>::cublasTgemv( cublasHandle_t handle, cublasOperation_t op, int m, int n, const int *alpha, const int *A, int lda, const int *x, int incx, const int *beta, int *y, int incy )

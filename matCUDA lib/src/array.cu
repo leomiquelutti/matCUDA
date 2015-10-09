@@ -1229,6 +1229,106 @@ __global__ void zeros_under_diag_kernel(ComplexDouble *a, __int32 size)
 	__syncthreads();
 }
 
+template <typename T>
+__host__ void zeros_above_diag(T *a, __int32 size)
+{    
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (size + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (size + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	//zeros_above_diag_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
+	zeros_above_diag_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
+}
+
+template __host__ void zeros_above_diag( int *a, __int32 size );
+template __host__ void zeros_above_diag( float *a, __int32 size );
+template __host__ void zeros_above_diag( double *a, __int32 size );
+template __host__ void zeros_above_diag( ComplexFloat *a, __int32 size );
+template __host__ void zeros_above_diag( ComplexDouble *a, __int32 size );
+
+__global__ void zeros_above_diag_kernel(int *a, __int32 size)
+{    
+	// index
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line > 0 && line < size && column > line )
+	{
+		a[line + column*size] = 0;
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
+__global__ void zeros_above_diag_kernel(float *a, __int32 size)
+{    
+	// index
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line > 0 && line < size && column > line )
+	{
+		a[line + column*size] = 0;
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
+__global__ void zeros_above_diag_kernel(double *a, __int32 size)
+{    
+	// index
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line > 0 && line < size && column > line )
+	{
+		a[line + column*size] = 0;
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
+__global__ void zeros_above_diag_kernel(ComplexFloat *a, __int32 size)
+{    
+	// index
+	cuFloatComplex *aux;
+	aux = (cuFloatComplex *)a;
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line > 0 && line < size && column > line )
+	{
+		aux[line + column*size] = make_cuComplex( 0, 0 );
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
+__global__ void zeros_above_diag_kernel(ComplexDouble *a, __int32 size)
+{    
+	// index
+	cuDoubleComplex *aux;
+	aux = (cuDoubleComplex *)a;
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line > 0 && line < size && column > line )
+	{
+		aux[line + column*size] = make_cuDoubleComplex( 0, 0 );
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
 template<> __host__ void cudaEye( ComplexFloat *a, __int32 size )
 {    
 	dim3 threadsPerBlock2( 32, 32 );

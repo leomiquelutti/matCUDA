@@ -768,7 +768,8 @@ namespace matCUDA
 		cublasStatus_t stat;
 		try
 		{
-			stat = op.add_zerocopy( this, &a, &result, std::string("+") );
+			stat = op.add( this, &a, &result, std::string("+") );
+			//stat = op.add_zerocopy( this, &a, &result, std::string("+") );
 		}
 		catch(std::exception &e)
 		{
@@ -1061,7 +1062,7 @@ namespace matCUDA
 		try
 		{
 			// C = A x B
-			stat = op.multiply( this, &a, &result );
+			stat = op.multiply_zerocopy( this, &a, &result );
 		}
 		catch(std::exception &e)
 		{
@@ -1449,8 +1450,11 @@ namespace matCUDA
 
 	template<> void Array<ComplexFloat>::LU( Array<ComplexFloat> *L, Array<ComplexFloat> *U, Array<ComplexFloat> *P )
 	{
-		cublasOperations<ComplexFloat> op;
-		cublasStatus_t stat;
+		cublasOperations<ComplexFloat> opCublas;
+		cublasStatus_t statCublas;
+
+		cusolverOperations<ComplexFloat> opCusolver;
+		cusolverStatus_t  statCusolver;
 
 		if( m_data.m_numElements == 1)
 		{
@@ -1463,8 +1467,10 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.LU( this, U, P );
-			if( stat == CUBLAS_STATUS_SUCCESS )
+			//statCublas = opCublas.LU( this, U, P );
+			//if( statCublas == CUBLAS_STATUS_SUCCESS )
+			statCusolver = opCusolver.LU( this, U, P );
+			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<ComplexFloat>( std::min(U->getDim(0),U->getDim(1)) );
 				for( int i = 0; i < U->getDim(0); i++ ) {
@@ -1486,8 +1492,11 @@ namespace matCUDA
 
 	template<> void Array<ComplexDouble>::LU( Array<ComplexDouble> *L, Array<ComplexDouble> *U, Array<ComplexDouble> *P )
 	{
-		cublasOperations<ComplexDouble> op;
-		cublasStatus_t stat;
+		cublasOperations<ComplexDouble> opCublas;
+		cublasStatus_t statCublas;
+
+		cusolverOperations<ComplexDouble> opCusolver;
+		cusolverStatus_t  statCusolver;
 
 		if( m_data.m_numElements == 1)
 		{
@@ -1500,8 +1509,10 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.LU( this, U, P );
-			if( stat == CUBLAS_STATUS_SUCCESS )
+			//statCublas = opCublas.LU( this, U, P );
+			//if( statCublas == CUBLAS_STATUS_SUCCESS )
+			statCusolver = opCusolver.LU( this, U, P );
+			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<ComplexDouble>( std::min(U->getDim(0),U->getDim(1)) );
 				for( int i = 0; i < U->getDim(0); i++ ) {
@@ -1524,8 +1535,12 @@ namespace matCUDA
 	template <typename TElement>
 	void Array<TElement>::LU( Array<TElement> *L, Array<TElement> *U, Array<TElement> *P )
 	{
-		cublasOperations<TElement> op;
-		cublasStatus_t stat;
+		cublasOperations<TElement> opCublas;
+		cublasStatus_t statCublas;
+
+		cusolverOperations<TElement> opCusolver;
+		cusolverStatus_t  statCusolver;
+
 		TElement det = 1;
 
 		if( m_data.m_numElements == 1)
@@ -1539,8 +1554,10 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.LU( this, U, P );
-			if( stat == CUBLAS_STATUS_SUCCESS )
+			//statCublas = opCublas.LU( this, U, P );
+			//if( statCublas == CUBLAS_STATUS_SUCCESS )
+			statCusolver = opCusolver.LU( this, U, P );
+			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<TElement>( std::min(U->getDim(0),U->getDim(1)) );
 				for( int i = 0; i < U->getDim(0); i++ ) {
@@ -1566,8 +1583,11 @@ namespace matCUDA
 
 	template<> void Array<ComplexFloat>::LU( Array<ComplexFloat> *L, Array<ComplexFloat> *U )
 	{
-		cublasOperations<ComplexFloat> op;
-		cublasStatus_t stat;
+		cublasOperations<ComplexFloat> opCublas;
+		cublasStatus_t statCublas;
+
+		cusolverOperations<ComplexFloat> opCusolver;
+		cusolverStatus_t  statCusolver;
 
 		if( m_data.m_numElements == 1)
 		{
@@ -1578,8 +1598,10 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.LU( this, U );
-			if( stat == CUBLAS_STATUS_SUCCESS )
+			//statCublas = opCublas.LU( this, U );
+			//if( statCublas == CUBLAS_STATUS_SUCCESS )
+			statCusolver = opCusolver.LU( this, U );
+			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<ComplexFloat>( std::min(U->getDim(0),U->getDim(1)) );
 				for( int i = 0; i < U->getDim(0); i++ ) {
@@ -1601,8 +1623,11 @@ namespace matCUDA
 
 	template<> void Array<ComplexDouble>::LU( Array<ComplexDouble> *L, Array<ComplexDouble> *U )
 	{
-		cublasOperations<ComplexDouble> op;
-		cublasStatus_t stat;
+		cublasOperations<ComplexDouble> opCublas;
+		cublasStatus_t statCublas;
+
+		cusolverOperations<ComplexDouble> opCusolver;
+		cusolverStatus_t  statCusolver;
 
 		if( m_data.m_numElements == 1)
 		{
@@ -1613,8 +1638,10 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.LU( this, U );
-			if( stat == CUBLAS_STATUS_SUCCESS )
+			//statCublas = opCublas.LU( this, U );
+			//if( statCublas == CUBLAS_STATUS_SUCCESS )
+			statCusolver = opCusolver.LU( this, U );
+			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<ComplexDouble>( std::min(U->getDim(0),U->getDim(1)) );
 				for( int i = 0; i < U->getDim(0); i++ ) {
@@ -1637,8 +1664,12 @@ namespace matCUDA
 	template <typename TElement>
 	void Array<TElement>::LU( Array<TElement> *L, Array<TElement> *U )
 	{
-		cublasOperations<TElement> op;
-		cublasStatus_t stat;
+		cublasOperations<TElement> opCublas;
+		cublasStatus_t statCublas;
+
+		cusolverOperations<TElement> opCusolver;
+		cusolverStatus_t  statCusolver;
+
 		TElement det = 1;
 
 		if( m_data.m_numElements == 1)
@@ -1650,8 +1681,10 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.LU( this, U );
-			if( stat == CUBLAS_STATUS_SUCCESS )
+			statCublas = opCublas.LU( this, U );
+			if( statCublas == CUBLAS_STATUS_SUCCESS )
+			//statCusolver = opCusolver.LU( this, U );
+			//if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<TElement>( std::min(U->getDim(0),U->getDim(1)) );
 				for( int i = 0; i < U->getDim(0); i++ ) {
@@ -1680,8 +1713,11 @@ namespace matCUDA
 	template <typename TElement>
 	Array<TElement> Array<TElement>::invert()
 	{
-		cublasOperations<TElement> op;
-		cublasStatus_t stat;
+		cublasOperations<TElement> opCublas;
+		cublasStatus_t statCublas = CUBLAS_STATUS_SUCCESS;
+
+		cusolverOperations<TElement> opCusolver;
+		cusolverStatus_t  statCusolver = CUSOLVER_STATUS_SUCCESS;
 
 		if( m_data.m_numElements == 1)
 		{
@@ -1694,15 +1730,17 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.invert_zerocopy( &result, this );
-			//stat = op.invert( &result, this );
+			statCusolver = opCusolver.invert_zerocopy( &result, this );
+			//statCusolver = opCusolver.invert( &result, this );
+			//statCublas = opCublas.invert_zerocopy( &result, this );
+			//statCublas = opCublas.invert( &result, this );
 		}
 		catch(std::exception &e)
 		{
 			std::cerr << boost::diagnostic_information(e);
 		}
 
-		if( stat != CUBLAS_STATUS_SUCCESS )
+		if( statCublas != CUBLAS_STATUS_SUCCESS || statCusolver != CUSOLVER_STATUS_SUCCESS )
 			result = *this;
 
 		//result.print();
@@ -1717,74 +1755,18 @@ namespace matCUDA
 
 	// implementation of LS solution
 
-	//template<> Array<ComplexFloat> Array<ComplexFloat>::LS( Array<ComplexFloat> A )
-	//{
-	//	cublasOperations<ComplexFloat> op;
-	//	cublasStatus_t stat;
-	//
-	//	if( m_data.m_numElements == 1)
-	//	{
-	//		Array<ComplexFloat> result(1);
-	//		result(0) = ComplexFloat(1,0)/(*this)(0);
-	//		return result;
-	//	}
-	//	
-	//	Array<ComplexFloat> result = *this;
-	//	Array<ComplexFloat> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-	//	Array<int> Pivot( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-	//
-	//	try
-	//	{
-	//		stat = op.invert( &result, &LU, &Pivot );
-	//	}
-	//	catch(std::exception &e)
-	//	{
-	//		std::cerr << boost::diagnostic_information(e);
-	//	}
-	//
-	//	return result;
-	//}
-	//
-	//template<> Array<ComplexDouble> Array<ComplexDouble>::LS( Array<ComplexDouble> A )
-	//{
-	//	cublasOperations<ComplexDouble> op;
-	//	cublasStatus_t stat;
-	//
-	//	if( m_data.m_numElements == 1)
-	//	{
-	//		Array<ComplexDouble> result(1);
-	//		result(0) = ComplexDouble(1,0)/(*this)(0);
-	//		return result;
-	//	}
-	//	
-	//	Array<ComplexDouble> result = *this;
-	//	Array<ComplexDouble> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-	//	Array<int> Pivot( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
-	//
-	//	try
-	//	{
-	//		stat = op.invert( &result, &LU, &Pivot );
-	//	}
-	//	catch(std::exception &e)
-	//	{
-	//		std::cerr << boost::diagnostic_information(e);
-	//	}
-	//
-	//	return result;
-	//}
-
 	template <typename TElement>
-	Array<TElement> Array<TElement>::LS( Array<TElement> A )
+	Array<TElement> Array<TElement>::LS( Array<TElement> *A )
 	{
 		cublasOperations<TElement> op;
 		cublasStatus_t stat;
 	
-		Array<TElement> result( A.GetDescriptor().GetDim( 1 ), this->GetDescriptor().GetDim( 1 ) );
+		Array<TElement> result( A->GetDescriptor().GetDim( 1 ), this->GetDescriptor().GetDim( 1 ) );
 		Array<TElement> aux = *this;
 
 		try
 		{
-			stat = op.LS( A, &result, aux );
+			stat = op.LS( A, &result, &aux );
 		}
 		catch(std::exception &e)
 		{
@@ -1794,11 +1776,11 @@ namespace matCUDA
 		return result;
 	}
 
-	template Array<int> Array<int>::LS( Array<int> A );
-	template Array<float> Array<float>::LS( Array<float> A );
-	template Array<double> Array<double>::LS( Array<double> A );
-	template Array<ComplexFloat> Array<ComplexFloat>::LS( Array<ComplexFloat> A );
-	template Array<ComplexDouble> Array<ComplexDouble>::LS( Array<ComplexDouble> A );
+	template Array<int> Array<int>::LS( Array<int> *A );
+	template Array<float> Array<float>::LS( Array<float> *A );
+	template Array<double> Array<double>::LS( Array<double> *A );
+	template Array<ComplexFloat> Array<ComplexFloat>::LS( Array<ComplexFloat> *A );
+	template Array<ComplexDouble> Array<ComplexDouble>::LS( Array<ComplexDouble> *A );
 
 	// implementation of detrend
 
@@ -1817,7 +1799,7 @@ namespace matCUDA
 				x(j,1) = 1;
 			}
 
-			Array<TElement> p = aux.LS( x );
+			Array<TElement> p = aux.LS( &x );
 			aux = aux - x*p;
 
 			for( int j = 0; j < x.GetDescriptor().GetDim(0); j++ )
@@ -1853,416 +1835,6 @@ namespace matCUDA
 	template Array<double> Array<double>::diff();
 	template Array<ComplexFloat> Array<ComplexFloat>::diff();
 	template Array<ComplexDouble> Array<ComplexDouble>::diff();
-
-	//template <typename TElement>
-	//Array<TElement>& Array<TElement>::invert()
-	//{
-	//	if(m_indexer->GetDescriptor().GetNDim() != 2 ||
-	//		m_indexer->GetDescriptor().GetDim(0) != m_indexer->GetDescriptor().GetDim(1))
-	//			return *this;
-	//
-	//	cublasHandle_t handle;
-	//	
-	//	TElement *h_matrix = m_data.m_data;
-	//	TElement *d_matrix = NULL;
-	//	int rows = m_indexer->GetDescriptor().GetDim(0);
-	//	int cols = m_indexer->GetDescriptor().GetDim(1);
-	//	int size = rows*cols;
-	//	
-	//	try
-	//	{
-	//		if(cublasCreate(&handle) != CUBLAS_STATUS_SUCCESS)
-	//			throw std::exception();
-	//
-	//		if(cudaMalloc((void**)&d_matrix, size*sizeof(TElement)) != cudaSuccess)
-	//			throw std::exception();
-	//
-	//		if(cublasSetMatrix(rows, cols, sizeof(TElement), h_matrix, rows, d_matrix, cols) != CUBLAS_STATUS_SUCCESS)
-	//    		throw std::exception();
-	//
-	//		// Perform LU factorization
-	//		invertLU(handle, rows, d_matrix);
-	//
-	//		if(cublasGetMatrix(rows, cols, sizeof(TElement), d_matrix, rows, h_matrix, cols) != CUBLAS_STATUS_SUCCESS)
-	//    		throw std::exception();
-	//	}
-	//	catch(std::exception &e)
-	//	{
-	//		std::cerr << boost::diagnostic_information(e);
-	//	}
-	//		
-	//	// Cleanup
-	//	cudaFree(d_matrix);
-	//	cublasDestroy(handle);
-	//
-	//	return *this;
-	//}
-	//
-	//template Array<int>& Array<int>::invert();
-	//template Array<float>& Array<float>::invert();
-	//template Array<double>& Array<double>::invert();
-	//
-	//Array<ComplexFloat>& Array<ComplexFloat>::invert()
-	//{
-	//	if(m_indexer->GetDescriptor().GetNDim() != 2 ||
-	//		m_indexer->GetDescriptor().GetDim(0) != m_indexer->GetDescriptor().GetDim(1))
-	//			return *this;
-	//
-	//	cublasHandle_t handle;
-	//	Array<float> *matrix = NULL;
-	//	float *d_matrix = NULL;
-	//
-	//	try
-	//	{
-	//		int rows = m_indexer->GetDescriptor().GetDim(0) << 1;
-	//		int cols = m_indexer->GetDescriptor().GetDim(1) << 1;
-	//		int size = rows*cols;
-	//	
-	//		matrix = new Array<float>(rows, cols);
-	//		int N = m_indexer->GetDescriptor().GetDim(0);
-	//		for(int i = 0; i < N; i++)
-	//		{
-	//		   for(int j = 0; j < N; j++)
-	//		   {
-	//			   (*matrix)(i, j) = (*this)(i, j).real();
-	//			   (*matrix)(i , j + N) = (*this)(i, j).imag();
-	//
-	//			   (*matrix)(i + N, j) = (*this)(i, j).imag() * (-1);
-	//			   (*matrix)(i + N, j + N) = (*this)(i, j).real();
-	//		   }
-	//		}
-	//	
-	//		float *h_matrix = matrix->GetArrayData()->m_data;
-	//		
-	//		if(cublasCreate(&handle) != CUBLAS_STATUS_SUCCESS)
-	//			throw std::exception();
-	//
-	//		if(cudaMalloc((void**)&d_matrix, size*sizeof(float)) != cudaSuccess)
-	//			throw std::exception();
-	//
-	//		if(cublasSetMatrix(rows, cols, sizeof(float), h_matrix, rows, d_matrix, cols) != CUBLAS_STATUS_SUCCESS)
-	//    		throw std::exception();
-	//
-	//		// Perform LU factorization
-	//		invertLU(handle, rows, d_matrix);
-	//
-	//		if(cublasGetMatrix(rows, cols, sizeof(float), d_matrix, rows, h_matrix, cols) != CUBLAS_STATUS_SUCCESS)
-	//    		throw std::exception();
-	//
-	//		for(int i = 0; i < N; i++)
-	//		{
-	//		   for(int j = 0; j < N; j++)
-	//		   {
-	//			   (*this)(i, j).real((*matrix)(i , j));
-	//			   (*this)(i, j).imag((*matrix)(i , j + N));
-	//		   }
-	//		}
-	//	}
-	//	catch(std::exception &e)
-	//	{
-	//		std::cerr << boost::diagnostic_information(e);
-	//	}
-	//		
-	//	// Cleanup
-	//	cudaFree(d_matrix);
-	//	delete matrix;
-	//	cublasDestroy(handle);
-	//
-	//	return *this;
-	//}
-	//
-	//Array<ComplexDouble>& Array<ComplexDouble>::invert()
-	//{
-	//	if(m_indexer->GetDescriptor().GetNDim() != 2 ||
-	//		m_indexer->GetDescriptor().GetDim(0) != m_indexer->GetDescriptor().GetDim(1))
-	//			return *this;
-	//
-	//	cublasHandle_t handle;
-	//	Array<double> *matrix = NULL;
-	//	double *d_matrix = NULL;
-	//	try
-	//	{
-	//
-	//		int rows = m_indexer->GetDescriptor().GetDim(0) << 1;
-	//		int cols = m_indexer->GetDescriptor().GetDim(1) << 1;
-	//		int size = rows*cols;
-	//	
-	//		matrix = new Array<double>(rows, cols);
-	//		int N = m_indexer->GetDescriptor().GetDim(0);
-	//		for(int i = 0; i < N; i++)
-	//		{
-	//		   for(int j = 0; j < N; j++)
-	//		   {
-	//			   (*matrix)(i, j) = (*this)(i, j).real();
-	//			   (*matrix)(i , j + N) = (*this)(i, j).imag();
-	//
-	//			   (*matrix)(i + N, j) = (*this)(i, j).imag() * (-1);
-	//			   (*matrix)(i + N, j + N) = (*this)(i, j).real();
-	//		   }
-	//		}
-	//	
-	//		double *h_matrix = matrix->GetArrayData()->m_data;
-	//		
-	//		if(cublasCreate(&handle) != CUBLAS_STATUS_SUCCESS)
-	//			throw std::exception();
-	//
-	//		if(cudaMalloc((void**)&d_matrix, size*sizeof(double)) != cudaSuccess)
-	//			throw std::exception();
-	//
-	//		if(cublasSetMatrix(rows, cols, sizeof(double), h_matrix, rows, d_matrix, cols) != CUBLAS_STATUS_SUCCESS)
-	//    		throw std::exception();
-	//
-	//		// Perform LU factorization
-	//		invertLU(handle, rows, d_matrix);
-	//
-	//		if(cublasGetMatrix(rows, cols, sizeof(double), d_matrix, rows, h_matrix, cols) != CUBLAS_STATUS_SUCCESS)
-	//    		throw std::exception();
-	//
-	//		for(int i = 0; i < N; i++)
-	//		{
-	//		   for(int j = 0; j < N; j++)
-	//		   {
-	//			   (*this)(i, j).real((*matrix)(i , j));
-	//			   (*this)(i, j).imag((*matrix)(i , j + N));
-	//		   }
-	//		}
-	//	}
-	//	catch(std::exception &e)
-	//	{
-	//		std::cerr << boost::diagnostic_information(e);
-	//	}
-	//		
-	//	// Cleanup
-	//	cudaFree(d_matrix);
-	//	delete matrix;
-	//	cublasDestroy(handle);
-	//
-	//	return *this;
-	//}
-	//
-	//template <typename TElement>
-	//void Array<TElement>::invertLU(void *hnd, int n, int *d_matrix)
-	//{
-	//	// TODO Throw a different exception type since critical
-	//	throw std::exception("Operation not supported!!!");
-	//}
-	//
-	//template <typename TElement>
-	//void Array<TElement>::invertLU(void *hnd, int n, float *d_matrix)
-	//{
-	//	int *pivots = NULL;
-	//	float *d_work = NULL;
-	//
-	//	try
-	//	{
-	//		cublasHandle_t handle = static_cast<cublasHandle_t>(hnd);
-	//
-	//		// Perform LU decomposition
-	//		pivots = new int[n];
-	//		for (int i = 0; i < n; i++)
-	//		{
-	//			pivots[i] = i;
-	//		}
-	//
-	//		float factor[] = { 0.0 };
-	//		float *offset = NULL;
-	//		int pivot = 0;
-	//		float alfa = 0;
-	//		for(int i = 0; i < n - 1; i++)
-	//		{
-	//			offset = d_matrix + (i * n + i);
-	//			cublasIsamax(handle, n - i, offset, 1, &pivot);
-	//			pivot = i - 1 + pivot;
-	//			if(pivot != i)
-	//			{
-	//				pivots[i] = pivot;
-	//				cublasSswap(handle, n, d_matrix + pivot, n, d_matrix + i, n);
-	//			}
-	//
-	//			cublasGetVector(1, sizeof(float), offset, 1, factor, 1);
-	//        
-	//			alfa = 1 / factor[0];
-	//			cublasSscal(handle, n - i - 1, &alfa, offset + 1, 1);
-	//		
-	//			alfa = -1.0;
-	//			cublasSger(handle, n - i - 1, n - i - 1, &alfa, offset + 1, 1, offset + n, n, offset + (n + 1), n);
-	//		}
-	//
-	//		float det = 0;
-	//		::determinant(&det, d_matrix, n);
-	//		if(det == 0)
-	//			throw std::exception("Determinant is zero!!! Inverse does not exist!!!");
-	//
-	//		// Perform inv(U)
-	//		for(int i = 0; i < n; i++)
-	//		{
-	//			float *offset = d_matrix + (i * n);
-	//			cublasGetVector(1, sizeof(float), offset + i, 1, factor, 1);
-	//			factor[0] = 1 / factor[0];
-	//			cublasSetVector(1, sizeof(float), factor, 1, offset + i, 1);
-	//		
-	//			cublasStrmv(handle,
-	//						CUBLAS_FILL_MODE_UPPER,
-	//						CUBLAS_OP_N,
-	//						CUBLAS_DIAG_NON_UNIT,
-	//						i, d_matrix, n, offset, 1);
-	//        
-	//			alfa = -factor[0];
-	//			cublasSscal(handle, i, &alfa, offset, 1);
-	//		}
-	//
-	//		float beta = 0;
-	//	
-	//		// Solve inv(A)*L = inv(U)
-	//		if(cudaMalloc((void**)&d_work, (n - 1)*sizeof(float)) != cudaSuccess)
-	//			throw std::exception();
-	//		
-	//		for(int i = n - 1; i > 0; i--)
-	//        {
-	//			float *offset = d_matrix + ((i - 1) * n + i);
-	//
-	//			if(cudaMemcpy(d_work, offset, (n - 1) * sizeof(float), cudaMemcpyDeviceToDevice) != cudaSuccess)
-	//				throw std::exception();
-	//			
-	//			alfa = 0;
-	//			cublasSscal(handle, n - i, &alfa, offset, 1);
-	//            
-	//			alfa = -1;
-	//			beta = 1;
-	//			cublasSgemv(handle, CUBLAS_OP_N,
-	//						n, n - i, &alfa,
-	//						d_matrix + (i * n), n,
-	//						d_work, 1, &beta,
-	//						d_matrix + ((i - 1) * n), 1);
-	//		}
-	//
-	//		// Pivot back to original order
-	//        for (int i = n - 1; i >= 0; i--)
-	//        {
-	//            if (i != pivots[i])
-	//            {
-	//                cublasSswap(handle, n, d_matrix + (i * n), 1, d_matrix + (pivots[i] * n), 1);
-	//            }
-	//        }
-	//
-	//	} catch(...)
-	//	{
-	//		delete[] pivots;
-	//		cudaFree(d_work);
-	//		throw;
-	//	}
-	//
-	//	delete[] pivots;
-	//	cudaFree(d_work);
-	//}
-	//
-	//template <typename TElement>
-	//void Array<TElement>::invertLU(void *hnd, int n, double *d_matrix)
-	//{
-	//	int *pivots = NULL;
-	//	double *d_work = NULL;
-	//	
-	//	try
-	//	{
-	//		cublasHandle_t handle = static_cast<cublasHandle_t>(hnd);
-	//
-	//		// Perform LU decomposition
-	//		pivots = new int[n];
-	//		for (int i = 0; i < n; i++)
-	//		{
-	//			pivots[i] = i;
-	//		}
-	//
-	//		float factor[] = { 0.0 };
-	//		int pivot = 0;
-	//		double *offset = NULL;
-	//		double alfa = 0;
-	//		for(int i = 0; i < n - 1; i++)
-	//		{
-	//			offset = d_matrix + (i * n + i);
-	//			cublasIdamax(handle, n - i, offset, 1, &pivot);
-	//			pivot = i - 1 + pivot;
-	//			if(pivot != i)
-	//			{
-	//				pivots[i] = pivot;
-	//				cublasDswap(handle, n, d_matrix + pivot, n, d_matrix + i, n);
-	//			}
-	//
-	//			cublasGetVector(1, sizeof(double), offset, 1, factor, 1);
-	//        
-	//			alfa = 1 / factor[0];
-	//			cublasDscal(handle, n - i - 1, &alfa, offset + 1, 1);
-	//		
-	//			alfa = -1.0;
-	//			cublasDger(handle, n - i - 1, n - i - 1, &alfa, offset + 1, 1, offset + n, n, offset + (n + 1), n);
-	//		}
-	//
-	//		double det = 0;
-	//		::determinant(&det, d_matrix, n);
-	//		if(det == 0)
-	//			throw std::exception("Determinant is zero!!! Inverse does not exist!!!");
-	//
-	//		// Perform inv(U)
-	//		for(int i = 0; i < n; i++)
-	//		{
-	//			double *offset = d_matrix + (i * n);
-	//			cublasGetVector(1, sizeof(double), offset + i, 1, factor, 1);
-	//			factor[0] = 1 / factor[0];
-	//			cublasSetVector(1, sizeof(double), factor, 1, offset + i, 1);
-	//		
-	//			cublasDtrmv(handle,
-	//						CUBLAS_FILL_MODE_UPPER,
-	//						CUBLAS_OP_N,
-	//						CUBLAS_DIAG_NON_UNIT,
-	//						i, d_matrix, n, offset, 1);
-	//        
-	//			alfa = -factor[0];
-	//			cublasDscal(handle, i, &alfa, offset, 1);
-	//		}
-	//
-	//		double beta = 0;
-	//		// Solve inv(A)*L = inv(U)
-	//		if(cudaMalloc((void**)&d_work, (n - 1)*sizeof(double)) != cudaSuccess)
-	//			throw std::exception();
-	//		
-	//		for(int i = n - 1; i > 0; i--)
-	//        {
-	//			double *offset = d_matrix + ((i - 1) * n + i);
-	//
-	//			if(cudaMemcpy(d_work, offset, (n - 1) * sizeof(double), cudaMemcpyDeviceToDevice) != cudaSuccess)
-	//				throw std::exception();
-	//			
-	//			alfa = 0;
-	//			cublasDscal(handle, n - i, &alfa, offset, 1);
-	//            
-	//			alfa = -1;
-	//			beta = 1;
-	//			cublasDgemv(handle, CUBLAS_OP_N,
-	//						n, n - i, &alfa,
-	//						d_matrix + (i * n), n,
-	//						d_work, 1, &beta,
-	//						d_matrix + ((i - 1) * n), 1);
-	//		}
-	//
-	//		// Pivot back to original order
-	//        for (int i = n - 1; i >= 0; i--)
-	//        {
-	//            if (i != pivots[i])
-	//            {
-	//                cublasDswap(handle, n, d_matrix + (i * n), 1, d_matrix + (pivots[i] * n), 1);
-	//            }
-	//        }
-	//
-	//	} catch(...)
-	//	{
-	//		delete[] pivots;
-	//		cudaFree(d_work);
-	//		throw;
-	//	}
-	//
-	//	delete[] pivots;
-	//	cudaFree(d_work);
-	//}
 
 	// implementation of minor
 

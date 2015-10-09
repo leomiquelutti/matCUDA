@@ -59,6 +59,7 @@ namespace matCUDA
 		TElement *data() { return m_data.m_data; };
 		size_t			getDim( index_t dim ) { return this->GetDescriptor().GetDim( dim ); };
 		size_t			getNDim() { return this->GetDescriptor().GetNDim(); };
+		size_t			getNElements() { return (size_t)this->GetDescriptor().GetNumberOfElements(); };
 
 		// operators
 		bool operator == (Array<TElement> a);
@@ -100,7 +101,8 @@ namespace matCUDA
 		Array<TElement> getColumn( const index_t col );
 		Array<TElement> hermitian(); // gpu
 		Array<TElement> invert(); // gpu
-		Array<TElement> LS( Array<TElement> A ); // gpu
+		//Array<TElement> LS( Array<TElement> A ); // gpu
+		Array<TElement> LS( Array<TElement> *A ); // gpu
 		void			LU( Array<TElement> *L, Array<TElement> *U, Array<TElement> *P ); // gpu
 		void			LU( Array<TElement> *L, Array<TElement> *U ); // gpu
 		Array<TElement>	max(); // gpu

@@ -22,7 +22,7 @@ void test_LS_float_1()
 	control(1,0) = 1; control(1,1) = 1;
 	control(2,0) = 1; control(2,1) = 2;
 
-	TEST_CALL( B.LS( A ), control, BOOST_CURRENT_FUNCTION );
+	TEST_CALL( B.LS( &A ), control, BOOST_CURRENT_FUNCTION );
 }
 
 void test_LS_float_2()
@@ -31,7 +31,7 @@ void test_LS_float_2()
 	Array<float> x = read_file_matrix<float>( std::string("unit_tests_files//test_LS_float_2//x.txt") );
 	Array<float> control = read_file_vector<float>( std::string("unit_tests_files//test_LS_float_2//control.txt") );
 
-	Array<float> data = y.LS( x );
+	Array<float> data = y.LS( &x );
 
 	TEST_CALL( data, control, BOOST_CURRENT_FUNCTION );
 }
@@ -58,7 +58,7 @@ void test_LS_double_1()
 	control(1,0) = 1; control(1,1) = 1;
 	control(2,0) = 1; control(2,1) = 2;
 
-	TEST_CALL( B.LS( A ), control, BOOST_CURRENT_FUNCTION );
+	TEST_CALL( B.LS( &A ), control, BOOST_CURRENT_FUNCTION );
 }
 
 void test_LS_double_2()
@@ -67,7 +67,7 @@ void test_LS_double_2()
 	Array<double> x = read_file_matrix<double>( std::string("unit_tests_files//test_LS_double_2//x.txt") );
 	Array<double> control = read_file_vector<double>( std::string("unit_tests_files//test_LS_double_2//control.txt") );
 
-	Array<double> data = y.LS( x );
+	Array<double> data = y.LS( &x );
 
 	TEST_CALL( data, control, BOOST_CURRENT_FUNCTION );
 }
@@ -94,7 +94,7 @@ void test_LS_complex_1()
 	control(1,0) = 1; control(1,1) = 1;
 	control(2,0) = 1; control(2,1) = 2;
 
-	TEST_CALL( B.LS( A ), control, BOOST_CURRENT_FUNCTION );
+	TEST_CALL( B.LS( &A ), control, BOOST_CURRENT_FUNCTION );
 }
 
 void test_LS_complex_2()
@@ -103,7 +103,7 @@ void test_LS_complex_2()
 	Array<Complex> x = read_file_matrix<Complex>( std::string("unit_tests_files//test_LS_complex_2//x.txt") );
 	Array<Complex> control = read_file_matrix<Complex>( std::string("unit_tests_files//test_LS_complex_2//control.txt") );
 
-	Array<Complex> data = y.LS( x );
+	Array<Complex> data = y.LS( &x );
 
 	TEST_CALL( data, control, BOOST_CURRENT_FUNCTION );
 }
@@ -114,7 +114,7 @@ void test_LS_complex_3()
 	Array<Complex> x = read_file_matrix<Complex>( std::string("unit_tests_files//test_LS_complex_3//x.txt") );
 	Array<Complex> control = read_file_matrix<Complex>( std::string("unit_tests_files//test_LS_complex_3//control.txt") );
 
-	Array<Complex> data = y.LS( x );
+	Array<Complex> data = y.LS( &x );
 
 	TEST_CALL( data, control, BOOST_CURRENT_FUNCTION );
 }

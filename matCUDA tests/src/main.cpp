@@ -7,7 +7,7 @@ init_unit_test_suite( int argc, char* argv[] )
 {
 	test_suite* ts1 = BOOST_TEST_SUITE( "Array test suite" );
 		
-	ts1->add( BOOST_TEST_CASE( &draft ) );
+	//ts1->add( BOOST_TEST_CASE( &draft ) );
 
 	// UnitTest1.cpp
 	ts1->add( BOOST_TEST_CASE( &test_plus_float_1 ) );
@@ -270,7 +270,7 @@ init_unit_test_suite( int argc, char* argv[] )
 	ts1->add( BOOST_TEST_CASE( &test_times_TElement_double ) );
 	ts1->add( BOOST_TEST_CASE( &test_times_TElement_complex ) );
 
-	 //UnitTest11.cpp
+	//UnitTest11.cpp
 	ts1->add( BOOST_TEST_CASE( &test_LU_float_1 ) );
 	ts1->add( BOOST_TEST_CASE( &test_LU_float_2 ) );
 	ts1->add( BOOST_TEST_CASE( &test_LU_double_1 ) );

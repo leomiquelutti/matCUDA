@@ -26,6 +26,7 @@ namespace matCUDA
 
 		// C = A x B
 		cublasStatus_t multiply( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C );
+		cublasStatus_t multiply_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C ); // TODO
 
 		// C = A + B
 		cublasStatus_t add( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, std::string );
@@ -37,6 +38,7 @@ namespace matCUDA
 
 		// conjugate
 		cublasStatus_t conjugate( Array<TElement> *A );
+		cublasStatus_t conjugate_zerocopy( Array<TElement> *A ); // TODO
 
 		// hermitian
 		cublasStatus_t hermitian( Array<TElement> *A, Array<TElement> *C );
@@ -54,7 +56,8 @@ namespace matCUDA
 		cublasStatus_t LU( Array<TElement> *A, Array<TElement> *LU );
 
 		// least square solution
-		cublasStatus_t LS( Array<TElement> A, Array<TElement> *x, Array<TElement> C );
+		cublasStatus_t LS( Array<TElement> *A, Array<TElement> *x, Array<TElement> *C );
+		cublasStatus_t LS_zerocopy( Array<TElement> *A, Array<TElement> *x, Array<TElement> *C );
 
 		// QR decomposition
 		cublasStatus_t QR( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R );
@@ -83,13 +86,19 @@ namespace matCUDA
 		
 		// vector(transp) x vector = scalar
 		cublasStatus_t multiply_VectorTranspVector_Scalar( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size );
+		cublasStatus_t multiply_VectorTranspVector_Scalar_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size );
 		
 		// vector x vector(transp) = matrix
 		cublasStatus_t multiply_VectorVectorTransp_Matrix( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size );
+		cublasStatus_t multiply_VectorVectorTransp_Matrix_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size );
 		
-		// matrix x vector = vector OR vector(transp) x matrix = vector(transp)
+		// matrix x vector = vector 
 		cublasStatus_t multiply_MatrixVector_Vector( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size );
+		cublasStatus_t multiply_MatrixVector_Vector_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size );
+		
+		// vector(transp) x matrix = vector(transp) 
 		cublasStatus_t multiply_VectorTranspMatrix_VectorTransp( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size );
+		cublasStatus_t multiply_VectorTranspMatrix_VectorTransp_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C, _matrixSize matrix_size );
 		
 		// conjugate
 		cublasStatus_t conjugate_ComplexFloat( cublasHandle_t handle, Array<TElement> *A, _matrixSize matrix_size );

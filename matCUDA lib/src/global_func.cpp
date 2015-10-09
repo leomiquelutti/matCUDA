@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <stack>
+#include <chrono>
 #include <boost/exception/all.hpp>
 
 #include "common.h"
@@ -398,8 +399,8 @@ namespace matCUDA
 
 		try
 		{
-			//stat = op.rand( &result );
-			stat = op.rand_zerocopy( &result );
+			stat = op.rand( &result );
+			//stat = op.rand_zerocopy( &result );
 		}
 		catch(std::exception &e)
 		{
@@ -414,19 +415,22 @@ namespace matCUDA
 	template Array<ComplexFloat> rand(index_t u1, index_t u2);
 	template Array<ComplexDouble> rand(index_t u1, index_t u2);
 
-	std::stack<clock_t> tictoc_stack;
+	std::stack<std::chrono::system_clock::time_point> tictoc_stack;
 	void tic() {
-		tictoc_stack.push(clock());
+		tictoc_stack.push(std::chrono::high_resolution_clock::now());
 	}
 	void toc() {
 		std::cout << "Time elapsed: "
-				  << ((double)(clock() - tictoc_stack.top())) / CLOCKS_PER_SEC
+				  << std::setprecision( 8 )
+				  << std::scientific
+				  << 1e-9*std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - tictoc_stack.top()).count()
+				  //<< ((double)(clock() - tictoc_stack.top())) / CLOCKS_PER_SEC
 				  << " seconds"
 				  << std::endl;
 		tictoc_stack.pop();
 	}
 	long double toc( long double in ) {
-		long double out = in + ((double)(clock() - tictoc_stack.top())) / CLOCKS_PER_SEC;
+		long double out = 1e-9*std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - tictoc_stack.top()).count();
 		return out;
 	}
 }

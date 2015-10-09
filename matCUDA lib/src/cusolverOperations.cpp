@@ -6,6 +6,341 @@
 
 namespace matCUDA
 {
+	template< typename TElement>
+	cusolverStatus_t cusolverOperations<TElement>::invert( Array<TElement> *result, Array<TElement> *data )
+	{
+		cusolverDnHandle_t handle;
+		CUSOLVER_CALL( cusolverDnCreate(&handle) );
+
+		size_t M = data->getDim(0);
+		size_t N = data->getDim(1);
+		size_t minMN = std::min(M,N);
+
+		TElement *d_A, *Workspace, *d_B;
+
+		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
+		CUDA_CALL( cudaMalloc(&d_B, M * N * sizeof(TElement)) );
+
+		CUDA_CALL( cudaMemcpy(d_A, data->data(), M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
+		cudaEye<TElement>( d_B, minMN );
+
+		int Lwork = 0;
+		CUSOLVER_CALL( cusolverDnTgetrf_bufferSize(&handle, M, N, d_A, M, &Lwork) );
+
+		CUDA_CALL( cudaMalloc( &Workspace, Lwork * sizeof(TElement) ) );
+
+		int *devIpiv, *devInfo;
+		size_t size_pivot = std::min(data->getDim(0),data->getDim(1));
+		
+		CUDA_CALL( cudaMalloc( &devIpiv, size_pivot * sizeof(int) ) );
+		CUDA_CALL( cudaMalloc( &devInfo, sizeof(int) ) );
+
+		CUSOLVER_CALL( cusolverDnTgetrf( &handle, M, N, d_A, M, Workspace, devIpiv, devInfo ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// copy from GPU
+		int INFOh = 2;
+		CUDA_CALL( cudaMemcpy( &INFOh, devInfo, sizeof( int ), cudaMemcpyDeviceToHost ) );
+
+		if( INFOh > 0 )
+		{
+			printf("Factorization Failed: Matrix is singular\n");
+			return CUSOLVER_STATUS_EXECUTION_FAILED;
+		}
+
+		CUSOLVER_CALL( cusolverDnTgetrs( &handle, CUBLAS_OP_N, data->getDim(0), data->getDim(1), d_A, data->getDim(0), devIpiv, d_B, data->getDim(0), devInfo ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// copy from GPU
+		INFOh = 2;
+		CUDA_CALL( cudaMemcpy( &INFOh, devInfo, sizeof( int ), cudaMemcpyDeviceToHost ) );
+
+		if( INFOh > 0 )
+		{
+			printf("Inversion Failed: Matrix is singular\n");
+			return CUSOLVER_STATUS_EXECUTION_FAILED;
+		}
+	
+		CUDA_CALL( cudaMemcpy( result->m_data.GetElements(), d_B, result->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+
+		// free memory
+		CUDA_CALL( cudaFree( d_A ) );
+		CUDA_CALL( cudaFree( d_B ) );
+		CUDA_CALL( cudaFree( Workspace ) );
+		CUDA_CALL( cudaFree( devIpiv ) );
+		CUDA_CALL( cudaFree( devInfo ) );
+
+		// Destroy the handle
+		CUSOLVER_CALL( cusolverDnDestroy(handle) );
+
+		return CUSOLVER_STATUS_SUCCESS;
+	}
+
+	template cusolverStatus_t cusolverOperations<int>::invert( Array<int> *result, Array<int> *data );
+	template cusolverStatus_t cusolverOperations<float>::invert( Array<float> *result, Array<float> *data );
+	template cusolverStatus_t cusolverOperations<double>::invert( Array<double> *result, Array<double> *data );
+	template cusolverStatus_t cusolverOperations<ComplexFloat>::invert( Array<ComplexFloat> *result, Array<ComplexFloat> *data );
+	template cusolverStatus_t cusolverOperations<ComplexDouble>::invert( Array<ComplexDouble> *result, Array<ComplexDouble> *data );
+
+	
+	template< typename TElement>
+	cusolverStatus_t cusolverOperations<TElement>::invert_zerocopy( Array<TElement> *result, Array<TElement> *data )
+	{
+		cusolverDnHandle_t handle;
+		CUSOLVER_CALL( cusolverDnCreate(&handle) );
+
+		size_t M = data->getDim(0);
+		size_t N = data->getDim(1);
+		size_t minMN = std::min(M,N);
+
+		TElement *d_A, *Workspace, *d_B;
+
+		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
+
+		// pass host pointer to device
+		CUDA_CALL( cudaHostGetDevicePointer( &d_B, result->m_data.GetElements(), 0 ) );
+
+		CUDA_CALL( cudaMemcpy(d_A, data->data(), M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
+		cudaEye<TElement>( d_B, minMN );
+
+		int Lwork = 0;
+		CUSOLVER_CALL( cusolverDnTgetrf_bufferSize(&handle, M, N, d_A, M, &Lwork) );
+
+		CUDA_CALL( cudaMalloc( &Workspace, Lwork * sizeof(TElement) ) );
+
+		int *devIpiv, *devInfo;
+		size_t size_pivot = std::min(data->getDim(0),data->getDim(1));
+		
+		CUDA_CALL( cudaMalloc( &devIpiv, size_pivot * sizeof(int) ) );
+		CUDA_CALL( cudaMalloc( &devInfo, sizeof(int) ) );
+
+		CUSOLVER_CALL( cusolverDnTgetrf( &handle, M, N, d_A, M, Workspace, devIpiv, devInfo ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// copy from GPU
+		int INFOh = 2;
+		CUDA_CALL( cudaMemcpy( &INFOh, devInfo, sizeof( int ), cudaMemcpyDeviceToHost ) );
+
+		if( INFOh > 0 )
+		{
+			printf("Factorization Failed: Matrix is singular\n");
+			return CUSOLVER_STATUS_EXECUTION_FAILED;
+		}
+
+		CUSOLVER_CALL( cusolverDnTgetrs( &handle, CUBLAS_OP_N, data->getDim(0), data->getDim(1), d_A, data->getDim(0), devIpiv, d_B, data->getDim(0), devInfo ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// copy from GPU
+		INFOh = 2;
+		CUDA_CALL( cudaMemcpy( &INFOh, devInfo, sizeof( int ), cudaMemcpyDeviceToHost ) );
+
+		if( INFOh > 0 )
+		{
+			printf("Inversion Failed: Matrix is singular\n");
+			return CUSOLVER_STATUS_EXECUTION_FAILED;
+		}
+	
+		// free memory
+		CUDA_CALL( cudaFree( d_A ) );
+		CUDA_CALL( cudaFree( Workspace ) );
+		CUDA_CALL( cudaFree( devIpiv ) );
+		CUDA_CALL( cudaFree( devInfo ) );
+
+		// Destroy the handle
+		CUSOLVER_CALL( cusolverDnDestroy(handle) );
+
+		return CUSOLVER_STATUS_SUCCESS;
+	}
+
+	template cusolverStatus_t cusolverOperations<int>::invert_zerocopy( Array<int> *result, Array<int> *data );
+	template cusolverStatus_t cusolverOperations<float>::invert_zerocopy( Array<float> *result, Array<float> *data );
+	template cusolverStatus_t cusolverOperations<double>::invert_zerocopy( Array<double> *result, Array<double> *data );
+	template cusolverStatus_t cusolverOperations<ComplexFloat>::invert_zerocopy( Array<ComplexFloat> *result, Array<ComplexFloat> *data );
+	template cusolverStatus_t cusolverOperations<ComplexDouble>::invert_zerocopy( Array<ComplexDouble> *result, Array<ComplexDouble> *data );
+
+	
+	template< typename TElement>
+	cusolverStatus_t cusolverOperations<TElement>::LU( Array<TElement> *A, Array<TElement> *LU, Array<TElement> *Pivot )
+	{
+		cusolverDnHandle_t handle;
+		CUSOLVER_CALL( cusolverDnCreate(&handle) );
+
+		size_t M = A->getDim(0);
+		size_t N = A->getDim(1);
+		size_t minMN = std::min(M,N);
+
+		TElement *d_A, *Workspace;
+
+		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
+		CUDA_CALL( cudaMemcpy(d_A, A->data(), M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
+
+		int Lwork = 0;
+		CUSOLVER_CALL( cusolverDnTgetrf_bufferSize(&handle, M, N, d_A, M, &Lwork) );
+
+		CUDA_CALL( cudaMalloc( &Workspace, Lwork * sizeof(TElement) ) );
+
+		int *devIpiv, *devInfo;
+		size_t size_pivot = std::min(A->getDim(0),A->getDim(1));
+		
+		CUDA_CALL( cudaMalloc( &devIpiv, size_pivot * sizeof(int) ) );
+		CUDA_CALL( cudaMalloc( &devInfo, sizeof(int) ) );
+
+		CUSOLVER_CALL( cusolverDnTgetrf( &handle, M, N, d_A, M, Workspace, devIpiv, devInfo ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// copy from GPU
+		int INFOh = 2;
+		CUDA_CALL( cudaMemcpy( &INFOh, devInfo, sizeof( int ), cudaMemcpyDeviceToHost ) );
+
+		if( INFOh > 0 )
+		{
+			printf("Factorization Failed: Matrix is singular\n");
+			return CUSOLVER_STATUS_EXECUTION_FAILED;
+		}
+	
+		Array<int> pivotVector( size_pivot );
+		CUDA_CALL( cudaMemcpy( LU->m_data.GetElements(), d_A, LU->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( pivotVector.data(), devIpiv, size_pivot*sizeof( int ), cudaMemcpyDeviceToHost ) );
+
+		from_permutation_vector_to_permutation_matrix( Pivot, &pivotVector );
+
+		// free memory
+		CUDA_CALL( cudaFree( d_A ) );
+		CUDA_CALL( cudaFree( Workspace ) );
+		CUDA_CALL( cudaFree( devIpiv ) );
+		CUDA_CALL( cudaFree( devInfo ) );
+
+		// Destroy the handle
+		CUSOLVER_CALL( cusolverDnDestroy(handle) );
+
+		return CUSOLVER_STATUS_SUCCESS;
+	}
+
+	template cusolverStatus_t cusolverOperations<int>::LU( Array<int> *A, Array<int> *LU, Array<int> *Pivot );
+	template cusolverStatus_t cusolverOperations<float>::LU( Array<float> *A, Array<float> *LU, Array<float> *Pivot );
+	template cusolverStatus_t cusolverOperations<double>::LU( Array<double> *A, Array<double> *LU, Array<double> *Pivot );
+	template cusolverStatus_t cusolverOperations<ComplexFloat>::LU( Array<ComplexFloat> *A, Array<ComplexFloat> *LU, Array<ComplexFloat> *Pivot );
+	template cusolverStatus_t cusolverOperations<ComplexDouble>::LU( Array<ComplexDouble> *A, Array<ComplexDouble> *LU, Array<ComplexDouble> *Pivot );
+
+	template< typename TElement>
+	cusolverStatus_t cusolverOperations<TElement>::LU( Array<TElement> *A, Array<TElement> *LU )
+	{
+		cusolverDnHandle_t handle;
+		CUSOLVER_CALL( cusolverDnCreate(&handle) );
+
+		size_t M = A->getDim(0);
+		size_t N = A->getDim(1);
+		size_t minMN = std::min(M,N);
+
+		TElement *d_A, *Workspace;
+
+		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
+		CUDA_CALL( cudaMemcpy(d_A, A->data(), M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
+
+		int Lwork = 0;
+		CUSOLVER_CALL( cusolverDnTgetrf_bufferSize(&handle, M, N, d_A, M, &Lwork) );
+
+		CUDA_CALL( cudaMalloc( &Workspace, Lwork * sizeof(TElement) ) );
+
+		int *devIpiv, *devInfo;
+		size_t size_pivot = std::min(A->getDim(0),A->getDim(1));
+		
+		CUDA_CALL( cudaMalloc( &devIpiv, size_pivot * sizeof(int) ) );
+		CUDA_CALL( cudaMalloc( &devInfo, sizeof(int) ) );
+
+		CUSOLVER_CALL( cusolverDnTgetrf( &handle, M, N, d_A, M, Workspace, devIpiv, devInfo ) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+
+		// copy from GPU
+		int INFOh = 2;
+		CUDA_CALL( cudaMemcpy( &INFOh, devInfo, sizeof( int ), cudaMemcpyDeviceToHost ) );
+
+		if( INFOh > 0 )
+		{
+			printf("Factorization Failed: Matrix is singular\n");
+			return CUSOLVER_STATUS_EXECUTION_FAILED;
+		}
+	
+		CUDA_CALL( cudaMemcpy( LU->m_data.GetElements(), d_A, LU->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+
+		// free memory
+		CUDA_CALL( cudaFree( d_A ) );
+		CUDA_CALL( cudaFree( Workspace ) );
+		CUDA_CALL( cudaFree( devIpiv ) );
+		CUDA_CALL( cudaFree( devInfo ) );
+
+		// Destroy the handle
+		CUSOLVER_CALL( cusolverDnDestroy(handle) );
+
+		return CUSOLVER_STATUS_SUCCESS;
+	}
+
+	template cusolverStatus_t cusolverOperations<int>::LU( Array<int> *A, Array<int> *LU );
+	template cusolverStatus_t cusolverOperations<float>::LU( Array<float> *A, Array<float> *LU );
+	template cusolverStatus_t cusolverOperations<double>::LU( Array<double> *A, Array<double> *LU );
+	template cusolverStatus_t cusolverOperations<ComplexFloat>::LU( Array<ComplexFloat> *A, Array<ComplexFloat> *LU );
+	template cusolverStatus_t cusolverOperations<ComplexDouble>::LU( Array<ComplexDouble> *A, Array<ComplexDouble> *LU );
+
+	template <typename TElement>
+	cusolverStatus_t cusolverOperations<TElement>::QR( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R )
+	{
+		cusolverDnHandle_t handle;
+		CUSOLVER_CALL( cusolverDnCreate(&handle) );
+
+		int M = A->getDim(0);
+		int N = A->getDim(1);
+		int minMN = std::min(M,N);
+
+		TElement *d_A, *h_A, *TAU, *Workspace, *d_Q;
+		h_A = A->m_data.GetElements();
+		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
+		CUDA_CALL( cudaMemcpy(d_A, h_A, M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
+
+		int Lwork = 0;
+		CUSOLVER_CALL( cusolverDnTgeqrf_bufferSize(&handle, M, N, d_A, M, &Lwork) );
+		CUDA_CALL( cudaMalloc(&TAU, minMN * sizeof(TElement)) );
+		CUDA_CALL(cudaMalloc(&Workspace, Lwork * sizeof(TElement)));
+
+		int *devInfo;
+		CUDA_CALL( cudaMalloc(&devInfo, sizeof(int)) );
+		CUDA_CALL( cudaMemset( (void*)devInfo, 0, 1 ) );
+		
+		CUSOLVER_CALL( cusolverDnTgeqrf(&handle, M, N, d_A, M, TAU, Workspace, Lwork, devInfo) );
+		
+		int devInfo_h = 0;  
+		CUDA_CALL( cudaMemcpy(&devInfo_h, devInfo, sizeof(int), cudaMemcpyDeviceToHost) );
+		if (devInfo_h != 0)
+			return CUSOLVER_STATUS_INTERNAL_ERROR;
+
+		// CALL CUDA FUNCTION
+		CUDA_CALL( cudaMemcpy( R->m_data.GetElements(), d_A, R->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		for(int j = 0; j < M; j++)
+			for(int i = j + 1; i < N; i++)
+				(*R)(i,j) = 0;
+
+		// --- Initializing the output Q matrix (Of course, this step could be done by a kernel function directly on the device)
+		//*Q = eye<TElement> ( std::min(Q->getDim(0),Q->getDim(1)) );
+		CUDA_CALL( cudaMalloc(&d_Q, M*M*sizeof(TElement)) );
+		cudaEye<TElement>( d_Q, std::min(Q->getDim(0),Q->getDim(1)) );
+
+		// --- CUDA QR execution
+		CUSOLVER_CALL( cusolverDnTormqr(&handle, CUBLAS_SIDE_LEFT, CUBLAS_OP_N, M, N, std::min(M, N), d_A, M, TAU, d_Q, M, Workspace, Lwork, devInfo) );
+		
+		// --- At this point, d_Q contains the elements of Q. Showing this.
+		CUDA_CALL( cudaMemcpy(Q->m_data.GetElements(), d_Q, M*M*sizeof(TElement), cudaMemcpyDeviceToHost) );
+		CUDA_CALL( cudaDeviceSynchronize() );
+  
+		CUSOLVER_CALL( cusolverDnDestroy(handle) );
+
+		return CUSOLVER_STATUS_SUCCESS;
+	}
+	
+	template cusolverStatus_t cusolverOperations<int>::QR( Array<int> *A, Array<int> *Q, Array<int> *R );
+	template cusolverStatus_t cusolverOperations<float>::QR( Array<float> *A, Array<float> *Q, Array<float> *R );
+	template cusolverStatus_t cusolverOperations<double>::QR( Array<double> *A, Array<double> *Q, Array<double> *R );
+	template cusolverStatus_t cusolverOperations<ComplexFloat>::QR( Array<ComplexFloat> *A, Array<ComplexFloat> *Q, Array<ComplexFloat> *R );
+	template cusolverStatus_t cusolverOperations<ComplexDouble>::QR( Array<ComplexDouble> *A, Array<ComplexDouble> *Q, Array<ComplexDouble> *R );
+	
 	template<> cusolverStatus_t cusolverOperations<ComplexFloat>::dpss( Array<ComplexFloat> *eigenvector, index_t N, double NW, index_t degree )
 	{
 		return CUSOLVER_STATUS_NOT_INITIALIZED;
@@ -145,72 +480,12 @@ namespace matCUDA
 
 	template cusolverStatus_t cusolverOperations<float>::dpss( Array<float> *eigenvector, index_t N, double NW, index_t degree );
 	template cusolverStatus_t cusolverOperations<double>::dpss( Array<double> *eigenvector, index_t N, double NW, index_t degree );
-
-	template <typename TElement>
-	cusolverStatus_t cusolverOperations<TElement>::QR( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R )
-	{
-		cusolverDnHandle_t solver_handle;
-		CUSOLVER_CALL( cusolverDnCreate(&solver_handle) );
-
-		int M = A->getDim(0);
-		int N = A->getDim(1);
-		int minMN = std::min(M,N);
-
-		TElement *d_A, *h_A, *TAU, *Workspace, *d_Q;
-		h_A = A->m_data.GetElements();
-		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
-		CUDA_CALL( cudaMemcpy(d_A, h_A, M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
-
-		int work_size = 0;
-		CUSOLVER_CALL( cusolverDnTgeqrf_bufferSize(&solver_handle, M, N, d_A, M, &work_size) );
-		CUDA_CALL( cudaMalloc(&TAU, minMN * sizeof(TElement)) );
-		CUDA_CALL(cudaMalloc(&Workspace, work_size * sizeof(TElement)));
-
-		int *devInfo;
-		CUDA_CALL( cudaMalloc(&devInfo, sizeof(int)) );
-		CUDA_CALL( cudaMemset( (void*)devInfo, 0, 1 ) );
-
-		CUSOLVER_CALL( cusolverDnTgeqrf(&solver_handle, M, N, d_A, M, TAU, Workspace, work_size, devInfo) );
-		
-		int devInfo_h = 0;  
-		CUDA_CALL( cudaMemcpy(&devInfo_h, devInfo, sizeof(int), cudaMemcpyDeviceToHost) );
-		if (devInfo_h != 0)
-			return CUSOLVER_STATUS_INTERNAL_ERROR;
-
-		// CALL CUDA FUNCTION
-		CUDA_CALL( cudaMemcpy( R->m_data.GetElements(), d_A, R->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
-		for(int j = 0; j < M; j++)
-			for(int i = j + 1; i < N; i++)
-				(*R)(i,j) = 0;
-
-		// --- Initializing the output Q matrix (Of course, this step could be done by a kernel function directly on the device)
-		//*Q = eye<TElement> ( std::min(Q->getDim(0),Q->getDim(1)) );
-		CUDA_CALL( cudaMalloc(&d_Q, M*M*sizeof(TElement)) );
-		cudaEye<TElement>( d_Q, std::min(Q->getDim(0),Q->getDim(1)) );
-
-		// --- CUDA QR execution
-		CUSOLVER_CALL( cusolverDnTormqr(&solver_handle, CUBLAS_SIDE_LEFT, CUBLAS_OP_N, M, N, std::min(M, N), d_A, M, TAU, d_Q, M, Workspace, work_size, devInfo) );
-
-		// --- At this point, d_Q contains the elements of Q. Showing this.
-		CUDA_CALL( cudaMemcpy(Q->m_data.GetElements(), d_Q, M*M*sizeof(TElement), cudaMemcpyDeviceToHost) );
-		CUDA_CALL( cudaDeviceSynchronize() );
-  
-		CUSOLVER_CALL( cusolverDnDestroy(solver_handle) );
-
-		return CUSOLVER_STATUS_SUCCESS;
-	}
-	
-	template cusolverStatus_t cusolverOperations<int>::QR( Array<int> *A, Array<int> *Q, Array<int> *R );
-	template cusolverStatus_t cusolverOperations<float>::QR( Array<float> *A, Array<float> *Q, Array<float> *R );
-	template cusolverStatus_t cusolverOperations<double>::QR( Array<double> *A, Array<double> *Q, Array<double> *R );
-	template cusolverStatus_t cusolverOperations<ComplexFloat>::QR( Array<ComplexFloat> *A, Array<ComplexFloat> *Q, Array<ComplexFloat> *R );
-	template cusolverStatus_t cusolverOperations<ComplexDouble>::QR( Array<ComplexDouble> *A, Array<ComplexDouble> *Q, Array<ComplexDouble> *R );
 	
 	template <typename TElement>
 	cusolverStatus_t cusolverOperations<TElement>::QR_zerocopy( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R )
 	{
-		cusolverDnHandle_t solver_handle;
-		CUSOLVER_CALL( cusolverDnCreate(&solver_handle) );
+		cusolverDnHandle_t handle;
+		CUSOLVER_CALL( cusolverDnCreate(&handle) );
 
 		int M = A->getDim(0);
 		int N = A->getDim(1);
@@ -221,16 +496,16 @@ namespace matCUDA
 		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
 		CUDA_CALL( cudaMemcpy(d_A, h_A, M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
 
-		int work_size = 0;
-		CUSOLVER_CALL( cusolverDnTgeqrf_bufferSize(&solver_handle, M, N, d_A, M, &work_size) );
+		int Lwork = 0;
+		CUSOLVER_CALL( cusolverDnTgeqrf_bufferSize(&handle, M, N, d_A, M, &Lwork) );
 		CUDA_CALL( cudaMalloc(&TAU, minMN * sizeof(TElement)) );
-		CUDA_CALL(cudaMalloc(&Workspace, work_size * sizeof(TElement)));
+		CUDA_CALL(cudaMalloc(&Workspace, Lwork * sizeof(TElement)));
 
 		int *devInfo;
 		CUDA_CALL( cudaMalloc(&devInfo, sizeof(int)) );
 		CUDA_CALL( cudaMemset( (void*)devInfo, 0, 1 ) );
 
-		CUSOLVER_CALL( cusolverDnTgeqrf(&solver_handle, M, N, d_A, M, TAU, Workspace, work_size, devInfo) );
+		CUSOLVER_CALL( cusolverDnTgeqrf(&handle, M, N, d_A, M, TAU, Workspace, Lwork, devInfo) );
 		
 		int devInfo_h = 0;  
 		CUDA_CALL( cudaMemcpy(&devInfo_h, devInfo, sizeof(int), cudaMemcpyDeviceToHost) );
@@ -255,10 +530,10 @@ namespace matCUDA
 		CUDA_CALL( cudaDeviceSynchronize() );
 
 		// --- CUDA QR_zerocopy execution
-		CUSOLVER_CALL( cusolverDnTormqr(&solver_handle, CUBLAS_SIDE_LEFT, CUBLAS_OP_N, M, N, std::min(M, N), d_A, M, TAU, d_Q, M, Workspace, work_size, devInfo) );
+		CUSOLVER_CALL( cusolverDnTormqr(&handle, CUBLAS_SIDE_LEFT, CUBLAS_OP_N, M, N, std::min(M, N), d_A, M, TAU, d_Q, M, Workspace, Lwork, devInfo) );
 		CUDA_CALL( cudaDeviceSynchronize() );
   
-		CUSOLVER_CALL( cusolverDnDestroy(solver_handle) );
+		CUSOLVER_CALL( cusolverDnDestroy(handle) );
 
 		return CUSOLVER_STATUS_SUCCESS;
 	}
@@ -267,8 +542,53 @@ namespace matCUDA
 	template cusolverStatus_t cusolverOperations<float>::QR_zerocopy( Array<float> *A, Array<float> *Q, Array<float> *R );
 	template cusolverStatus_t cusolverOperations<double>::QR_zerocopy( Array<double> *A, Array<double> *Q, Array<double> *R );
 	template cusolverStatus_t cusolverOperations<ComplexFloat>::QR_zerocopy( Array<ComplexFloat> *A, Array<ComplexFloat> *Q, Array<ComplexFloat> *R );
-	template cusolverStatus_t cusolverOperations<ComplexDouble>::QR_zerocopy( Array<ComplexDouble> *A, Array<ComplexDouble> *Q, Array<ComplexDouble> *R );
-	
+	template cusolverStatus_t cusolverOperations<ComplexDouble>::QR_zerocopy( Array<ComplexDouble> *A, Array<ComplexDouble> *Q, Array<ComplexDouble> *R );// transform permutation vector into permutation matrix
+	// TODO (or redo) - too slow!!!
+
+	template <typename TElement>
+	void cusolverOperations<TElement>::from_permutation_vector_to_permutation_matrix( Array<TElement> *pivotMatrix, Array<int> *pivotVector )
+	{
+		//pivotVector->print();
+		//*pivotMatrix = eye<TElement>(pivotVector->getDim(0));
+		//index_t idx1, idx2;
+		//for( int i = 0; i < pivotVector->GetDescriptor().GetDim(0); i++ ) {
+		//	if( i + 1 == (*pivotVector)(i) )
+		//		continue;
+		//	else
+		//	{
+		//		idx1 = i;
+		//		idx2 = (*pivotVector)(i)-1;
+		//		(*pivotMatrix)( idx1, idx1 ) = 0;
+		//		(*pivotMatrix)( idx2, idx2 ) = 0;
+		//		(*pivotMatrix)( idx1, idx2 ) = 1;
+		//		(*pivotMatrix)( idx2, idx1 ) = 1;
+		//	}
+		//	pivotMatrix->print();
+		//}
+		//pivotMatrix->print();
+		//
+		//*pivotMatrix = eye<TElement>(pivotVector->getDim(0));
+
+
+		//pivotVector->print();
+		//eye<double>(pivotVector->getDim(0)).print();
+		Array<TElement> pivotAux = eye<TElement>(pivotVector->GetDescriptor().GetDim(0));
+		index_t idx1, idx2;
+		for( int i = 0; i < pivotVector->GetDescriptor().GetDim(0); i++ ) {
+			idx1 = i;
+			idx2 = (*pivotVector)(i)-1;
+			pivotAux( idx1, idx1 ) = 0;
+			pivotAux( idx2, idx2 ) = 0;
+			pivotAux( idx1, idx2 ) = 1;
+			pivotAux( idx2, idx1 ) = 1;
+
+			(*pivotMatrix) = pivotAux*(*pivotMatrix);
+			pivotAux = eye<TElement>(pivotVector->GetDescriptor().GetDim(0));
+			//pivotMatrix->print();
+		}
+		//pivotMatrix->print();
+	}
+		
 	cusolverStatus_t cusolverOperations<float>::cusolverSpTcsreigvsi( cusolverSpHandle_t *handle, int m, int nnz, cusparseMatDescr_t *descrA, const float *csrValA, const int *csrRowPtrA, const int *csrColIndA, float mu0, const float *x0, int maxite, float tol, float *mu, float *x )
 	{
 		return cusolverSpScsreigvsi( *handle, m ,nnz, *descrA, csrValA, csrRowPtrA, csrColIndA, mu0, x0, maxite, tol, mu, x );;
@@ -360,9 +680,84 @@ namespace matCUDA
 	{
 		return cusolverDnCunmqr( *handle, side, trans, m, n, k, (const cuFloatComplex*)A, lda, (const cuFloatComplex*)tau, (cuFloatComplex*)C, ldc, (cuFloatComplex*)work, lwork, devInfo );
 	}	
-
+	
 	cusolverStatus_t cusolverOperations<ComplexDouble>::cusolverDnTormqr( cusolverDnHandle_t *handle, cublasSideMode_t side, cublasOperation_t trans, int m, int n, int k, const ComplexDouble *A, int lda, const ComplexDouble *tau, ComplexDouble *C, int ldc, ComplexDouble *work, int lwork, int *devInfo )
 	{
 		return cusolverDnZunmqr( *handle, side, trans, m, n, k, (const cuDoubleComplex*)A, lda, (const cuDoubleComplex*)tau, (cuDoubleComplex*)C, ldc, (cuDoubleComplex*)work, lwork, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<int>::cusolverDnTgetrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, int *A, int lda, int *Lwork )
+	{
+		return CUSOLVER_STATUS_SUCCESS;
+	}	
+
+	cusolverStatus_t cusolverOperations<float>::cusolverDnTgetrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, float *A, int lda, int *Lwork )
+	{
+		return cusolverDnSgetrf_bufferSize( *handle, m, n, A, lda, Lwork );
+	}	
+
+	cusolverStatus_t cusolverOperations<double>::cusolverDnTgetrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, double *A, int lda, int *Lwork )
+	{
+		return cusolverDnDgetrf_bufferSize( *handle, m, n, A, lda, Lwork );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexFloat>::cusolverDnTgetrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, ComplexFloat *A, int lda, int *Lwork )
+	{
+		return cusolverDnCgetrf_bufferSize( *handle, m, n, (cuFloatComplex*)A, lda, Lwork );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexDouble>::cusolverDnTgetrf_bufferSize( cusolverDnHandle_t *handle, int m, int n, ComplexDouble *A, int lda, int *Lwork )
+	{
+		return cusolverDnZgetrf_bufferSize( *handle, m, n, (cuDoubleComplex*)A, lda, Lwork );
+	}	
+
+	cusolverStatus_t cusolverOperations<int>::cusolverDnTgetrf( cusolverDnHandle_t *handle, int m, int n, int *A, int lda, int *Workspace, int *devIpiv, int *devInfo )
+	{
+		return CUSOLVER_STATUS_SUCCESS;
+	}	
+
+	cusolverStatus_t cusolverOperations<float>::cusolverDnTgetrf( cusolverDnHandle_t *handle, int m, int n, float *A, int lda, float *Workspace, int *devIpiv, int *devInfo )
+	{
+		return cusolverDnSgetrf( *handle, m, n, A, lda, Workspace, devIpiv, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<double>::cusolverDnTgetrf( cusolverDnHandle_t *handle, int m, int n, double *A, int lda, double *Workspace, int *devIpiv, int *devInfo )
+	{
+		return cusolverDnDgetrf( *handle, m, n, A, lda, Workspace, devIpiv, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexFloat>::cusolverDnTgetrf( cusolverDnHandle_t *handle, int m, int n, ComplexFloat *A, int lda, ComplexFloat *Workspace, int *devIpiv, int *devInfo )
+	{
+		return cusolverDnCgetrf( *handle, m, n, (cuFloatComplex*)A, lda, (cuFloatComplex*)Workspace, devIpiv, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexDouble>::cusolverDnTgetrf( cusolverDnHandle_t *handle, int m, int n, ComplexDouble *A, int lda, ComplexDouble *Workspace, int *devIpiv, int *devInfo )
+	{
+		return cusolverDnZgetrf( *handle, m, n, (cuDoubleComplex*)A, lda, (cuDoubleComplex*)Workspace, devIpiv, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<int>::cusolverDnTgetrs( cusolverDnHandle_t *handle, cublasOperation_t trans, int n, int nrhs, const int *A, int lda, const int *devIpiv, int *B, int ldb, int *devInfo )
+	{
+		return CUSOLVER_STATUS_SUCCESS;
+	}	
+
+	cusolverStatus_t cusolverOperations<float>::cusolverDnTgetrs( cusolverDnHandle_t *handle, cublasOperation_t trans, int n, int nrhs, const float *A, int lda, const int *devIpiv, float *B, int ldb, int *devInfo )
+	{
+		return cusolverDnSgetrs( *handle, trans, n, nrhs, A, lda, devIpiv, B, ldb, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<double>::cusolverDnTgetrs( cusolverDnHandle_t *handle, cublasOperation_t trans, int n, int nrhs, const double *A, int lda, const int *devIpiv, double *B, int ldb, int *devInfo )
+	{
+		return cusolverDnDgetrs( *handle, trans, n, nrhs, A, lda, devIpiv, B, ldb, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexFloat>::cusolverDnTgetrs( cusolverDnHandle_t *handle, cublasOperation_t trans, int n, int nrhs, const ComplexFloat *A, int lda, const int *devIpiv, ComplexFloat *B, int ldb, int *devInfo )
+	{
+		return cusolverDnCgetrs( *handle, trans, n, nrhs, (const cuFloatComplex*)A, lda, devIpiv, (cuFloatComplex*)B, ldb, devInfo );
+	}	
+
+	cusolverStatus_t cusolverOperations<ComplexDouble>::cusolverDnTgetrs( cusolverDnHandle_t *handle, cublasOperation_t trans, int n, int nrhs, const ComplexDouble *A, int lda, const int *devIpiv, ComplexDouble *B, int ldb, int *devInfo )
+	{
+		return cusolverDnZgetrs( *handle, trans, n, nrhs, (const cuDoubleComplex*)A, lda, devIpiv, (cuDoubleComplex*)B, ldb, devInfo );
 	}	
 }

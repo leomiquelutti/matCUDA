@@ -350,13 +350,23 @@ namespace matCUDA
 		CUDA_CALL( cudaMalloc( (void**)&dataIn, size_in ) );
 		CUDA_CALL( cudaMalloc( (void**)&dataOut, size_out ) );
 
+		CUFFT_CALL( cufftCreate( &plan ) );
+
 		// copy vectors to GPU async
 		CUDA_CALL( cudaMemcpyAsync( dataIn, in->data(), size_in, cudaMemcpyHostToDevice, stream ) );
-
-		CUFFT_CALL( cufftCreate( &plan ) );
+		
+		/////***** performance test *****/////
+		CUDA_CALL( cudaDeviceSynchronize() );
+		tic();		
+		for( int i = 0; i < 10; i++ ) {
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_Z2Z, BATCH, workSize ) ); 
 
 		CUFFT_CALL( cufftExecZ2Z(plan, dataIn, dataOut, CUFFT_FORWARD) );
+
+		}
+		CUDA_CALL( cudaDeviceSynchronize() );
+		toc();
+		////***** end of performance test *****/////
 
 		CUDA_CALL( cudaMemcpyAsync( out->data(), dataOut, size_out, cudaMemcpyDeviceToHost, stream ) );
 		
@@ -365,9 +375,9 @@ namespace matCUDA
 		CUDA_CALL( cudaFree( dataIn ) );
 		CUDA_CALL( cudaFree( dataOut ) );
 
-		CUFFT_CALL( cufftDestroy(plan) );
-
 		CUDA_CALL( cudaStreamDestroy( stream ) );
+
+		CUFFT_CALL( cufftDestroy(plan) );
 		
 		return CUFFT_SUCCESS;
 	}
