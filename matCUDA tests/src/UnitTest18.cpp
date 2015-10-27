@@ -9,7 +9,7 @@ void test_QR_float_1()
 	Array<float> q( Q.GetDescriptor().GetDim(0), Q.GetDescriptor().GetDim(1) );
 	Array<float> r( R.GetDescriptor().GetDim(0), R.GetDescriptor().GetDim(1) );
 
-	data.QR( &q, &r );
+	data.qr( &q, &r );
 
 	TEST_CALL( q*r, data, BOOST_CURRENT_FUNCTION );
 }
@@ -23,7 +23,7 @@ void test_QR_float_2()
 	Array<float> q( Q.GetDescriptor().GetDim(0), Q.GetDescriptor().GetDim(1) );
 	Array<float> r( R.GetDescriptor().GetDim(0), R.GetDescriptor().GetDim(1) );
 	
-	data.QR( &q, &r );
+	data.qr( &q, &r );
 
 	TEST_CALL( q*r, data, BOOST_CURRENT_FUNCTION );
 }
@@ -37,7 +37,7 @@ void test_QR_float_3()
 	Array<float> q( Q.GetDescriptor().GetDim(0), Q.GetDescriptor().GetDim(1) );
 	Array<float> r( R.GetDescriptor().GetDim(0), R.GetDescriptor().GetDim(1) );
 
-	data.QR( &q, &r );
+	data.qr( &q, &r );
 	
 	TEST_CALL( q*r, data, BOOST_CURRENT_FUNCTION );
 }
@@ -51,7 +51,7 @@ void test_QR_double_1()
 	Array<double> q( Q.GetDescriptor().GetDim(0), Q.GetDescriptor().GetDim(1) );
 	Array<double> r( R.GetDescriptor().GetDim(0), R.GetDescriptor().GetDim(1) );
 
-	data.QR( &q, &r );
+	data.qr( &q, &r );
 
 	TEST_CALL( q*r, data, BOOST_CURRENT_FUNCTION );
 }
@@ -65,7 +65,7 @@ void test_QR_double_2()
 	Array<double> q( Q.GetDescriptor().GetDim(0), Q.GetDescriptor().GetDim(1) );
 	Array<double> r( R.GetDescriptor().GetDim(0), R.GetDescriptor().GetDim(1) );
 
-	data.QR( &q, &r );
+	data.qr( &q, &r );
 
 	TEST_CALL( q*r, data, BOOST_CURRENT_FUNCTION );
 }
@@ -79,7 +79,7 @@ void test_QR_double_3()
 	Array<double> q( Q.GetDescriptor().GetDim(0), Q.GetDescriptor().GetDim(1) );
 	Array<double> r( R.GetDescriptor().GetDim(0), R.GetDescriptor().GetDim(1) );
 
-	data.QR( &q, &r );
+	data.qr( &q, &r );
 
 	TEST_CALL( q*r, data, BOOST_CURRENT_FUNCTION );
 }
@@ -93,7 +93,7 @@ void test_QR_complex_1()
 	Array<Complex> q( Q.GetDescriptor().GetDim(0), Q.GetDescriptor().GetDim(1) );
 	Array<Complex> r( R.GetDescriptor().GetDim(0), R.GetDescriptor().GetDim(1) );
 
-	data.QR( &q, &r );
+	data.qr( &q, &r );
 
 	TEST_CALL( q*r, data, BOOST_CURRENT_FUNCTION );
 }
@@ -107,7 +107,7 @@ void test_QR_complex_2()
 	Array<Complex> q( Q.GetDescriptor().GetDim(0), Q.GetDescriptor().GetDim(1) );
 	Array<Complex> r( R.GetDescriptor().GetDim(0), R.GetDescriptor().GetDim(1) );
 
-	data.QR( &q, &r );
+	data.qr( &q, &r );
 
 	TEST_CALL( q*r, data, BOOST_CURRENT_FUNCTION );
 }
@@ -121,7 +121,7 @@ void test_QR_complex_3()
 	Array<Complex> q( Q.GetDescriptor().GetDim(0), Q.GetDescriptor().GetDim(1) );
 	Array<Complex> r( R.GetDescriptor().GetDim(0), R.GetDescriptor().GetDim(1) );
 
-	data.QR( &q, &r );
+	data.qr( &q, &r );
 
 	TEST_CALL( q*r, data, BOOST_CURRENT_FUNCTION );
 }

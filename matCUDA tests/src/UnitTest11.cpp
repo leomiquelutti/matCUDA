@@ -9,7 +9,7 @@ void test_LU_float_1()
 	Array<float> l( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 	Array<float> u( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 
-	data.LU( &l, &u, &p );
+	data.lu( &l, &u, &p );
 
 	TEST_CALL( l*u, p*data, BOOST_CURRENT_FUNCTION );
 }
@@ -22,7 +22,7 @@ void test_LU_float_2()
 	Array<float> l( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 	Array<float> u( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 
-	data.LU( &l, &u, &p );
+	data.lu( &l, &u, &p );
 
 	TEST_CALL( l*u, p*data, BOOST_CURRENT_FUNCTION );
 }
@@ -36,7 +36,7 @@ void test_LU_double_1()
 	Array<double> l( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 	Array<double> u( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 
-	data.LU( &l, &u, &p );
+	data.lu( &l, &u, &p );
 	//data.print();
 	//l.print();
 	//u.print();
@@ -53,7 +53,7 @@ void test_LU_double_2()
 	Array<double> l( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 	Array<double> u( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 
-	data.LU( &l, &u, &p );
+	data.lu( &l, &u, &p );
 
 	TEST_CALL( l*u, p*data, BOOST_CURRENT_FUNCTION );
 }
@@ -67,7 +67,7 @@ void test_LU_complex_1()
 	Array<Complex> l( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 	Array<Complex> u( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 
-	data.LU( &l, &u, &p );
+	data.lu( &l, &u, &p );
 	TEST_CALL( l*u, p*data, BOOST_CURRENT_FUNCTION );
 }
 
@@ -79,7 +79,7 @@ void test_LU_complex_2()
 	Array<Complex> l( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 	Array<Complex> u( p.GetDescriptor().GetDim(0), p.GetDescriptor().GetDim(1) );
 
-	data.LU( &l, &u, &p );
+	data.lu( &l, &u, &p );
 
 	TEST_CALL( l*u, p*data, BOOST_CURRENT_FUNCTION );
 }

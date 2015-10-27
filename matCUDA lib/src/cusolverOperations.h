@@ -18,13 +18,16 @@ namespace matCUDA
 		// dpss generation (slepian sequences)
 		cusolverStatus_t dpss( Array<TElement> *eigenvector, index_t N, double NW, index_t degree );
 		
-		// QR decomposition
-		cusolverStatus_t QR( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R );
-		cusolverStatus_t QR_zerocopy( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R );
+		// qr decomposition
+		cusolverStatus_t qr( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R );
+		cusolverStatus_t qr_zerocopy( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R );
 
-		// LU decomposition
-		cusolverStatus_t LU( Array<TElement> *A, Array<TElement> *LU, Array<TElement> *Pivot );
-		cusolverStatus_t LU( Array<TElement> *A, Array<TElement> *LU );
+		// lu decomposition
+		cusolverStatus_t lu( Array<TElement> *A, Array<TElement> *lu, Array<TElement> *Pivot );
+		cusolverStatus_t lu( Array<TElement> *A, Array<TElement> *lu );
+
+		// ls solver through lu decomposition
+		cusolverStatus_t ls( Array<TElement> *A, Array<TElement> *x, Array<TElement> *C );
 
 		// invert
 		cusolverStatus_t invert( Array<TElement> *result, Array<TElement> *data );

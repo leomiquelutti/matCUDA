@@ -92,7 +92,7 @@ namespace matCUDA
 
 		for( int i = 0; i < EIG_MAX_ITER; i++ )
 		{
-			// CALL CUBLAS FUNCTION - QR decomposition
+			// CALL CUBLAS FUNCTION - qr decomposition
 			CUBLAS_CALL( cublasTgeqrfBatched( handle, matrix_size.Arows, matrix_size.Acols, Aarray, lda, tauArray, &infoArray, BATCHSIZE ) );// CALL CUBLAS FUNCTION
 
 			cudaDeviceSynchronize();
@@ -152,10 +152,10 @@ namespace matCUDA
 	template cublasStatus_t cublasOperations<ComplexFloat>::eig( Array<ComplexFloat> *A, Array<ComplexFloat> *eigenvectors );
 	template cublasStatus_t cublasOperations<ComplexDouble>::eig( Array<ComplexDouble> *A, Array<ComplexDouble> *eigenvectors );
 
-	// QR decomposition
+	// qr decomposition
 
 	template <typename TElement>
-	cublasStatus_t cublasOperations<TElement>::QR( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R )
+	cublasStatus_t cublasOperations<TElement>::qr( Array<TElement> *A, Array<TElement> *Q, Array<TElement> *R )
 	{
 		cublasHandle_t handle;
 		cublasCreate_v2(&handle);
@@ -224,7 +224,7 @@ namespace matCUDA
 		CUDA_CALL( cudaMemcpy(Carray,ptr_to_C, sizeof(TElement*), cudaMemcpyHostToDevice) );
 		CUDA_CALL( cudaMemcpy(auxArray,ptr_to_aux, sizeof(TElement*), cudaMemcpyHostToDevice) );
 
-		// CALL CUBLAS FUNCTION - QR decomposition
+		// CALL CUBLAS FUNCTION - qr decomposition
 		CUBLAS_CALL( cublasTgeqrfBatched( handle, matrix_size.Arows, matrix_size.Acols, Aarray, lda, tauArray, &infoArray, BATCHSIZE ) );
 		CUDA_CALL( cudaDeviceSynchronize() );
 
@@ -301,16 +301,16 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	template cublasStatus_t cublasOperations<int>::QR( Array<int> *A, Array<int> *Q, Array<int> *R );
-	template cublasStatus_t cublasOperations<float>::QR( Array<float> *A, Array<float> *Q, Array<float> *R );
-	template cublasStatus_t cublasOperations<double>::QR( Array<double> *A, Array<double> *Q, Array<double> *R );
-	template cublasStatus_t cublasOperations<ComplexFloat>::QR( Array<ComplexFloat> *A, Array<ComplexFloat> *Q, Array<ComplexFloat> *R );
-	template cublasStatus_t cublasOperations<ComplexDouble>::QR( Array<ComplexDouble> *A, Array<ComplexDouble> *Q, Array<ComplexDouble> *R );
+	template cublasStatus_t cublasOperations<int>::qr( Array<int> *A, Array<int> *Q, Array<int> *R );
+	template cublasStatus_t cublasOperations<float>::qr( Array<float> *A, Array<float> *Q, Array<float> *R );
+	template cublasStatus_t cublasOperations<double>::qr( Array<double> *A, Array<double> *Q, Array<double> *R );
+	template cublasStatus_t cublasOperations<ComplexFloat>::qr( Array<ComplexFloat> *A, Array<ComplexFloat> *Q, Array<ComplexFloat> *R );
+	template cublasStatus_t cublasOperations<ComplexDouble>::qr( Array<ComplexDouble> *A, Array<ComplexDouble> *Q, Array<ComplexDouble> *R );
 
 	// least square solution
 
 	template <typename TElement>
-	cublasStatus_t cublasOperations<TElement>::LS( Array<TElement> *A, Array<TElement> *x, Array<TElement> *C )
+	cublasStatus_t cublasOperations<TElement>::ls( Array<TElement> *A, Array<TElement> *x, Array<TElement> *C )
 	{	
 		cublasHandle_t handle;
 		cublasCreate_v2(&handle);
@@ -363,9 +363,19 @@ namespace matCUDA
 		//copy ptr_to_A references to device
 		CUDA_CALL( cudaMemcpy(Aarray,ptr_to_A, sizeof(TElement*), cudaMemcpyHostToDevice) );
 		CUDA_CALL( cudaMemcpy(Carray,ptr_to_C, sizeof(TElement*), cudaMemcpyHostToDevice) );
+		
+		/////***** performance test *****/////
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//tic();		
+		//for( int i = 0; i < 10; i++ ) {
 
 		// CALL CUBLAS FUNCTION
 		CUBLAS_CALL( cublasTgelsBatched( handle, CUBLAS_OP_N, matrix_size.Arows, matrix_size.Acols, matrix_size.Ccols, Aarray, lda, Carray, ldc, &infoArray, devInfoArray, BATCHSIZE ) );
+
+		//}
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//toc();
+		////***** end of performance test *****/////
 		CUDA_CALL( cudaDeviceSynchronize() );
 
 		// copy from GPU
@@ -381,6 +391,7 @@ namespace matCUDA
 
 		//C->m_padded = false;
 		CUDA_CALL( cudaMemcpy( C->m_data.GetElements(), d_C, C->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		//C->print();
 		for( int i = 0; i< x->GetDescriptor().GetDim( 0 ); i++ ) {
 			for( int j = 0; j < x->GetDescriptor().GetDim( 1 ); j++ )
 				(*x)( i, j ) = (*C)( i, j );
@@ -399,14 +410,14 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	template cublasStatus_t cublasOperations<int>::LS( Array<int> *A, Array<int> *x, Array<int> *C );
-	template cublasStatus_t cublasOperations<float>::LS( Array<float> *A, Array<float> *x, Array<float> *C );
-	template cublasStatus_t cublasOperations<double>::LS( Array<double> *A, Array<double> *x, Array<double> *C );
-	template cublasStatus_t cublasOperations<ComplexFloat>::LS( Array<ComplexFloat> *A, Array<ComplexFloat> *x, Array<ComplexFloat> *C );
-	template cublasStatus_t cublasOperations<ComplexDouble>::LS( Array<ComplexDouble> *A, Array<ComplexDouble> *x, Array<ComplexDouble> *C );
+	template cublasStatus_t cublasOperations<int>::ls( Array<int> *A, Array<int> *x, Array<int> *C );
+	template cublasStatus_t cublasOperations<float>::ls( Array<float> *A, Array<float> *x, Array<float> *C );
+	template cublasStatus_t cublasOperations<double>::ls( Array<double> *A, Array<double> *x, Array<double> *C );
+	template cublasStatus_t cublasOperations<ComplexFloat>::ls( Array<ComplexFloat> *A, Array<ComplexFloat> *x, Array<ComplexFloat> *C );
+	template cublasStatus_t cublasOperations<ComplexDouble>::ls( Array<ComplexDouble> *A, Array<ComplexDouble> *x, Array<ComplexDouble> *C );
 
 	template <typename TElement>
-	cublasStatus_t cublasOperations<TElement>::LS_zerocopy( Array<TElement> *A, Array<TElement> *x, Array<TElement> *C )
+	cublasStatus_t cublasOperations<TElement>::ls_zerocopy( Array<TElement> *A, Array<TElement> *x, Array<TElement> *C )
 	{	
 		cublasHandle_t handle;
 		cublasCreate_v2(&handle);
@@ -499,11 +510,11 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	template cublasStatus_t cublasOperations<int>::LS_zerocopy( Array<int> *A, Array<int> *x, Array<int> *C );
-	template cublasStatus_t cublasOperations<float>::LS_zerocopy( Array<float> *A, Array<float> *x, Array<float> *C );
-	template cublasStatus_t cublasOperations<double>::LS_zerocopy( Array<double> *A, Array<double> *x, Array<double> *C );
-	template cublasStatus_t cublasOperations<ComplexFloat>::LS_zerocopy( Array<ComplexFloat> *A, Array<ComplexFloat> *x, Array<ComplexFloat> *C );
-	template cublasStatus_t cublasOperations<ComplexDouble>::LS_zerocopy( Array<ComplexDouble> *A, Array<ComplexDouble> *x, Array<ComplexDouble> *C );
+	template cublasStatus_t cublasOperations<int>::ls_zerocopy( Array<int> *A, Array<int> *x, Array<int> *C );
+	template cublasStatus_t cublasOperations<float>::ls_zerocopy( Array<float> *A, Array<float> *x, Array<float> *C );
+	template cublasStatus_t cublasOperations<double>::ls_zerocopy( Array<double> *A, Array<double> *x, Array<double> *C );
+	template cublasStatus_t cublasOperations<ComplexFloat>::ls_zerocopy( Array<ComplexFloat> *A, Array<ComplexFloat> *x, Array<ComplexFloat> *C );
+	template cublasStatus_t cublasOperations<ComplexDouble>::ls_zerocopy( Array<ComplexDouble> *A, Array<ComplexDouble> *x, Array<ComplexDouble> *C );
 
 	// implementation on inversion
 
@@ -680,10 +691,10 @@ namespace matCUDA
 	template cublasStatus_t cublasOperations<ComplexFloat>::invert_zerocopy( Array<ComplexFloat> *result, Array<ComplexFloat> *data );
 	template cublasStatus_t cublasOperations<ComplexDouble>::invert_zerocopy( Array<ComplexDouble> *result, Array<ComplexDouble> *data );
 
-	// implementation of LU decomposition
+	// implementation of lu decomposition
 
 	template <typename TElement>
-	cublasStatus_t cublasOperations<TElement>::LU( Array<TElement> *A, Array<TElement> *LU, Array<TElement> *Pivot )
+	cublasStatus_t cublasOperations<TElement>::lu( Array<TElement> *A, Array<TElement> *lu, Array<TElement> *Pivot )
 	{	
 		cublasStatus_t stat = CUBLAS_STATUS_NOT_INITIALIZED;
 		cublasHandle_t handle;
@@ -698,8 +709,8 @@ namespace matCUDA
 		_matrixSize matrix_size;
 		matrix_size.Acols = A->GetDescriptor().GetDim(1);
 		matrix_size.Arows = A->GetDescriptor().GetDim(0);
-		matrix_size.Bcols = LU->GetDescriptor().GetDim(1);
-		matrix_size.Brows = LU->GetDescriptor().GetDim(0);
+		matrix_size.Bcols = lu->GetDescriptor().GetDim(1);
+		matrix_size.Brows = lu->GetDescriptor().GetDim(0);
 		matrix_size.Ccols = Pivot->GetDescriptor().GetDim(1);
 		matrix_size.Crows = Pivot->GetDescriptor().GetDim(0);
 
@@ -748,7 +759,7 @@ namespace matCUDA
 		}
 	
 		Array<int> pivotVector( size_pivot );
-		CUDA_CALL( cudaMemcpy( LU->m_data.GetElements(), d_A, LU->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( lu->m_data.GetElements(), d_A, lu->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 		CUDA_CALL( cudaMemcpy( pivotVector.m_data.GetElements(), PivotArray, size_pivot*sizeof( int ), cudaMemcpyDeviceToHost ) );
 
 		from_permutation_vector_to_permutation_matrix( Pivot, &pivotVector );
@@ -765,14 +776,14 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	template cublasStatus_t cublasOperations<int>::LU( Array<int> *A, Array<int> *LU, Array<int> *Pivot);
-	template cublasStatus_t cublasOperations<float>::LU( Array<float> *A, Array<float> *LU, Array<float> *Pivot );
-	template cublasStatus_t cublasOperations<double>::LU( Array<double> *A, Array<double> *LU, Array<double> *Pivot );
-	template cublasStatus_t cublasOperations<ComplexFloat>::LU( Array<ComplexFloat> *A, Array<ComplexFloat> *LU, Array<ComplexFloat> *Pivot );
-	template cublasStatus_t cublasOperations<ComplexDouble>::LU( Array<ComplexDouble> *A, Array<ComplexDouble> *LU, Array<ComplexDouble> *Pivot );
+	template cublasStatus_t cublasOperations<int>::lu( Array<int> *A, Array<int> *lu, Array<int> *Pivot);
+	template cublasStatus_t cublasOperations<float>::lu( Array<float> *A, Array<float> *lu, Array<float> *Pivot );
+	template cublasStatus_t cublasOperations<double>::lu( Array<double> *A, Array<double> *lu, Array<double> *Pivot );
+	template cublasStatus_t cublasOperations<ComplexFloat>::lu( Array<ComplexFloat> *A, Array<ComplexFloat> *lu, Array<ComplexFloat> *Pivot );
+	template cublasStatus_t cublasOperations<ComplexDouble>::lu( Array<ComplexDouble> *A, Array<ComplexDouble> *lu, Array<ComplexDouble> *Pivot );
 
 	template <typename TElement>
-	cublasStatus_t cublasOperations<TElement>::LU( Array<TElement> *A, Array<TElement> *LU )
+	cublasStatus_t cublasOperations<TElement>::lu( Array<TElement> *A, Array<TElement> *lu )
 	{	
 		cublasStatus_t stat = CUBLAS_STATUS_NOT_INITIALIZED;
 		cublasHandle_t handle;
@@ -787,8 +798,8 @@ namespace matCUDA
 		_matrixSize matrix_size;
 		matrix_size.Acols = A->GetDescriptor().GetDim(1);
 		matrix_size.Arows = A->GetDescriptor().GetDim(0);
-		matrix_size.Bcols = LU->GetDescriptor().GetDim(1);
-		matrix_size.Brows = LU->GetDescriptor().GetDim(0);
+		matrix_size.Bcols = lu->GetDescriptor().GetDim(1);
+		matrix_size.Brows = lu->GetDescriptor().GetDim(0);
 
 		CUBLAS_CALL(cublasCreate(&handle));
 		unsigned int size_A = matrix_size.Acols * matrix_size.Arows;
@@ -843,7 +854,7 @@ namespace matCUDA
 			return CUBLAS_STATUS_EXECUTION_FAILED;
 		}
 	
-		CUDA_CALL( cudaMemcpy( LU->m_data.GetElements(), d_A, LU->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( lu->m_data.GetElements(), d_A, lu->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 		
 		// free memory
 		CUBLAS_CALL( cublasFree( d_A ) );
@@ -857,11 +868,11 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	template cublasStatus_t cublasOperations<int>::LU( Array<int> *A, Array<int> *LU );
-	template cublasStatus_t cublasOperations<float>::LU( Array<float> *A, Array<float> *LU );
-	template cublasStatus_t cublasOperations<double>::LU( Array<double> *A, Array<double> *LU );
-	template cublasStatus_t cublasOperations<ComplexFloat>::LU( Array<ComplexFloat> *A, Array<ComplexFloat> *LU );
-	template cublasStatus_t cublasOperations<ComplexDouble>::LU( Array<ComplexDouble> *A, Array<ComplexDouble> *LU );
+	template cublasStatus_t cublasOperations<int>::lu( Array<int> *A, Array<int> *lu );
+	template cublasStatus_t cublasOperations<float>::lu( Array<float> *A, Array<float> *lu );
+	template cublasStatus_t cublasOperations<double>::lu( Array<double> *A, Array<double> *lu );
+	template cublasStatus_t cublasOperations<ComplexFloat>::lu( Array<ComplexFloat> *A, Array<ComplexFloat> *lu );
+	template cublasStatus_t cublasOperations<ComplexDouble>::lu( Array<ComplexDouble> *A, Array<ComplexDouble> *lu );
 
 	// implementation of conjugate
 
@@ -2179,51 +2190,51 @@ namespace matCUDA
 
 	// cublas wrappers
 
-	cublasStatus_t cublasOperations<int>::cublasTgeam( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const int *alpha, const int *A, int lda, const int *beta, const int *B, int ldb, int *C, int ldc)
+	cublasStatus_t cublasOperations<int>::cublasTgeam( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const int *alpha, const int *A, int lda, const int *beta, const int *B, int ldb, int *C, int ldc)
 	{
 		return CUBLAS_STATUS_NOT_INITIALIZED;
 	}
 
-	cublasStatus_t cublasOperations<float>::cublasTgeam( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const float *alpha, const float *A, int lda, const float *beta, const float *B, int ldb, float *C, int ldc)
+	cublasStatus_t cublasOperations<float>::cublasTgeam( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const float *alpha, const float *A, int lda, const float *beta, const float *B, int ldb, float *C, int ldc)
 	{
 		return cublasSgeam( handle, transa, transb, m, n, alpha, A, lda, beta, B, ldb, C, ldc );
 	}
 
-	cublasStatus_t cublasOperations<double>::cublasTgeam( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const double *alpha, const double *A, int lda, const double *beta, const double *B, int ldb, double *C, int ldc)
+	cublasStatus_t cublasOperations<double>::cublasTgeam( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const double *alpha, const double *A, int lda, const double *beta, const double *B, int ldb, double *C, int ldc)
 	{
 		return cublasDgeam( handle, transa, transb, m, n, alpha, A, lda, beta, B, ldb, C, ldc );
 	}	
 	
-	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgeam( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const ComplexFloat *alpha, const ComplexFloat *A, int lda, const ComplexFloat *beta, const ComplexFloat *B, int ldb, ComplexFloat *C, int ldc)
+	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgeam( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const ComplexFloat *alpha, const ComplexFloat *A, int lda, const ComplexFloat *beta, const ComplexFloat *B, int ldb, ComplexFloat *C, int ldc)
 	{
 		const cuFloatComplex alpha2 = make_cuFloatComplex( alpha->real(), alpha->imag() );
 		const cuFloatComplex beta2 = make_cuFloatComplex( beta->real(), beta->imag() );
 		return cublasCgeam( handle, transa, transb, m, n, &alpha2, (cuFloatComplex*)A, lda, &beta2, (cuFloatComplex*)B, ldb, (cuFloatComplex*)C, ldc );
 	}
 
-	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgeam( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const ComplexDouble *alpha, const ComplexDouble *A, int lda, const ComplexDouble *beta, const ComplexDouble *B, int ldb, ComplexDouble *C, int ldc)
+	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgeam( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, const ComplexDouble *alpha, const ComplexDouble *A, int lda, const ComplexDouble *beta, const ComplexDouble *B, int ldb, ComplexDouble *C, int ldc)
 	{
 		const cuDoubleComplex alpha2 = make_cuDoubleComplex( alpha->real(), alpha->imag() );
 		const cuDoubleComplex beta2 = make_cuDoubleComplex( beta->real(), beta->imag() );
 		return cublasZgeam( handle, transa, transb, m, n, &alpha2, (cuDoubleComplex*)A, lda, &beta2, (cuDoubleComplex*)B, ldb, (cuDoubleComplex*)C, ldc );
 	}
 
-	cublasStatus_t cublasOperations<int>::cublasTgemm( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const int *alpha, const int *A, int lda, const int *B, int ldb, const int *beta, int *C, int ldc)
+	cublasStatus_t cublasOperations<int>::cublasTgemm( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const int *alpha, const int *A, int lda, const int *B, int ldb, const int *beta, int *C, int ldc)
 	{
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	cublasStatus_t cublasOperations<float>::cublasTgemm( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const float *alpha, const float *A, int lda, const float *B, int ldb, const float *beta, float *C, int ldc)
+	cublasStatus_t cublasOperations<float>::cublasTgemm( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const float *alpha, const float *A, int lda, const float *B, int ldb, const float *beta, float *C, int ldc)
 	{
 		return cublasSgemm( handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc );
 	}
 
-	cublasStatus_t cublasOperations<double>::cublasTgemm( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const double *alpha, const double *A, int lda, const double *B, int ldb, const double *beta, double *C, int ldc)
+	cublasStatus_t cublasOperations<double>::cublasTgemm( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const double *alpha, const double *A, int lda, const double *B, int ldb, const double *beta, double *C, int ldc)
 	{
 		return cublasDgemm( handle, transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc );
 	}
 
-	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgemm( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const ComplexFloat *alpha, const ComplexFloat *A, int lda, const ComplexFloat *B, int ldb, const ComplexFloat *beta, ComplexFloat *C, int ldc)
+	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgemm( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const ComplexFloat *alpha, const ComplexFloat *A, int lda, const ComplexFloat *B, int ldb, const ComplexFloat *beta, ComplexFloat *C, int ldc)
 	{
 		cuFloatComplex alpha2, beta2;
 		alpha2 = make_cuFloatComplex( alpha->real(), alpha->imag() );
@@ -2231,7 +2242,7 @@ namespace matCUDA
 		return cublasCgemm( handle, transa, transb, m, n, k, (const cuFloatComplex*)alpha, (const cuFloatComplex*)A, lda, (const cuFloatComplex*)B, ldb, (const cuFloatComplex*)beta, (cuFloatComplex*)C, ldc );
 	}
 
-	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgemm( cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const ComplexDouble *alpha, const ComplexDouble *A, int lda, const ComplexDouble *B, int ldb, const ComplexDouble *beta, ComplexDouble *C, int ldc)
+	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgemm( cublasHandle_t &handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k, const ComplexDouble *alpha, const ComplexDouble *A, int lda, const ComplexDouble *B, int ldb, const ComplexDouble *beta, ComplexDouble *C, int ldc)
 	{
 		cuDoubleComplex alpha2, beta2;
 		alpha2 = make_cuDoubleComplex( alpha->real(), alpha->imag() );
@@ -2264,22 +2275,22 @@ namespace matCUDA
 		return cublasXtZgemm( handle, transa, transb, m, n, k, (const cuDoubleComplex*)alpha, (const cuDoubleComplex*)A, lda, (const cuDoubleComplex*)B, ldb, (const cuDoubleComplex*)beta, (cuDoubleComplex*)C, ldc );
 	}
 
-	cublasStatus_t cublasOperations<int>::cublasTdot( cublasHandle_t handle, int n, const int *x, int incx, const int *y, int incy, int *result )
+	cublasStatus_t cublasOperations<int>::cublasTdot( cublasHandle_t &handle, int n, const int *x, int incx, const int *y, int incy, int *result )
 	{
 		return CUBLAS_STATUS_NOT_INITIALIZED;
 	}
 
-	cublasStatus_t cublasOperations<float>::cublasTdot( cublasHandle_t handle, int n, const float *x, int incx, const float *y, int incy, float *result )
+	cublasStatus_t cublasOperations<float>::cublasTdot( cublasHandle_t &handle, int n, const float *x, int incx, const float *y, int incy, float *result )
 	{
 		return cublasSdot( handle, n, x, incx, y, incy, result );
 	}
 
-	cublasStatus_t cublasOperations<double>::cublasTdot( cublasHandle_t handle, int n, const double *x, int incx, const double *y, int incy, double *result )
+	cublasStatus_t cublasOperations<double>::cublasTdot( cublasHandle_t &handle, int n, const double *x, int incx, const double *y, int incy, double *result )
 	{
 		return cublasDdot( handle, n, x, incx, y, incy, result );
 	}	
 	
-	cublasStatus_t cublasOperations<ComplexFloat>::cublasTdot( cublasHandle_t handle, int n, const ComplexFloat *x, int incx, const ComplexFloat *y, int incy, ComplexFloat *result )
+	cublasStatus_t cublasOperations<ComplexFloat>::cublasTdot( cublasHandle_t &handle, int n, const ComplexFloat *x, int incx, const ComplexFloat *y, int incy, ComplexFloat *result )
 	{
 		cuFloatComplex aux;
 		CUBLAS_CALL( cublasCdotu( handle, n, (const cuFloatComplex*)x, incx, (const cuFloatComplex*)y, incy, &aux ) );
@@ -2287,7 +2298,7 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	cublasStatus_t cublasOperations<ComplexDouble>::cublasTdot( cublasHandle_t handle, int n, const ComplexDouble *x, int incx, const ComplexDouble *y, int incy, ComplexDouble *result )
+	cublasStatus_t cublasOperations<ComplexDouble>::cublasTdot( cublasHandle_t &handle, int n, const ComplexDouble *x, int incx, const ComplexDouble *y, int incy, ComplexDouble *result )
 	{
 		cuDoubleComplex aux;
 		CUBLAS_CALL( cublasZdotu( handle, n, (const cuDoubleComplex*)x, incx, (const cuDoubleComplex*)y, incy, &aux ) );
@@ -2295,154 +2306,154 @@ namespace matCUDA
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	cublasStatus_t cublasOperations<int>::cublasTger( cublasHandle_t handle, int m, int n, const int *alpha, const int *x, int incx, const int *y, int incy, int *A, int lda )
+	cublasStatus_t cublasOperations<int>::cublasTger( cublasHandle_t &handle, int m, int n, const int *alpha, const int *x, int incx, const int *y, int incy, int *A, int lda )
 	{
 		return CUBLAS_STATUS_NOT_INITIALIZED;
 	}
 	
-	cublasStatus_t cublasOperations<float>::cublasTger( cublasHandle_t handle, int m, int n, const float *alpha, const float *x, int incx, const float *y, int incy, float *A, int lda )
+	cublasStatus_t cublasOperations<float>::cublasTger( cublasHandle_t &handle, int m, int n, const float *alpha, const float *x, int incx, const float *y, int incy, float *A, int lda )
 	{
 		return cublasSger( handle, m, n, alpha, x, incx, y, incy, A, lda );
 	}
 	
-	cublasStatus_t cublasOperations<double>::cublasTger( cublasHandle_t handle, int m, int n, const double *alpha, const double *x, int incx, const double *y, int incy, double *A, int lda )
+	cublasStatus_t cublasOperations<double>::cublasTger( cublasHandle_t &handle, int m, int n, const double *alpha, const double *x, int incx, const double *y, int incy, double *A, int lda )
 	{
 		return cublasDger( handle, m, n, alpha, x, incx, y, incy, A, lda );
 	}
 	
-	cublasStatus_t cublasOperations<ComplexFloat>::cublasTger( cublasHandle_t handle, int m, int n, const ComplexFloat *alpha, const ComplexFloat *x, int incx, const ComplexFloat *y, int incy, ComplexFloat *A, int lda )
+	cublasStatus_t cublasOperations<ComplexFloat>::cublasTger( cublasHandle_t &handle, int m, int n, const ComplexFloat *alpha, const ComplexFloat *x, int incx, const ComplexFloat *y, int incy, ComplexFloat *A, int lda )
 	{
 		const cuFloatComplex alpha2 = make_cuFloatComplex( alpha->real(), alpha->imag() );
 		return cublasCgeru( handle, m, n, &alpha2, (const cuFloatComplex*)x, incx, (const cuFloatComplex*)y, incy, (cuFloatComplex*)A, lda );
 	}
 	
-	cublasStatus_t cublasOperations<ComplexDouble>::cublasTger( cublasHandle_t handle, int m, int n, const ComplexDouble *alpha, const ComplexDouble *x, int incx, const ComplexDouble *y, int incy, ComplexDouble *A, int lda )
+	cublasStatus_t cublasOperations<ComplexDouble>::cublasTger( cublasHandle_t &handle, int m, int n, const ComplexDouble *alpha, const ComplexDouble *x, int incx, const ComplexDouble *y, int incy, ComplexDouble *A, int lda )
 	{
 		const cuDoubleComplex alpha2 = make_cuDoubleComplex( alpha->real(), alpha->imag() );
 		return cublasZgeru( handle, m, n, &alpha2, (const cuDoubleComplex*)x, incx, (const cuDoubleComplex*)y, incy, (cuDoubleComplex*)A, lda );
 	}
 
-	cublasStatus_t cublasOperations<int>::cublasTgemv( cublasHandle_t handle, cublasOperation_t op, int m, int n, const int *alpha, const int *A, int lda, const int *x, int incx, const int *beta, int *y, int incy )
+	cublasStatus_t cublasOperations<int>::cublasTgemv( cublasHandle_t &handle, cublasOperation_t op, int m, int n, const int *alpha, const int *A, int lda, const int *x, int incx, const int *beta, int *y, int incy )
 	{
 		return CUBLAS_STATUS_SUCCESS;
 	}
 
-	cublasStatus_t cublasOperations<float>::cublasTgemv( cublasHandle_t handle, cublasOperation_t op, int m, int n, const float *alpha, const float *A, int lda, const float *x, int incx, const float *beta, float *y, int incy )
+	cublasStatus_t cublasOperations<float>::cublasTgemv( cublasHandle_t &handle, cublasOperation_t op, int m, int n, const float *alpha, const float *A, int lda, const float *x, int incx, const float *beta, float *y, int incy )
 	{
 		return cublasSgemv( handle, op, m, n, alpha, A, lda, x, incx, beta, y, incy );
 	}
 
-	cublasStatus_t cublasOperations<double>::cublasTgemv( cublasHandle_t handle, cublasOperation_t op, int m, int n, const double *alpha, const double *A, int lda, const double *x, int incx, const double *beta, double *y, int incy )
+	cublasStatus_t cublasOperations<double>::cublasTgemv( cublasHandle_t &handle, cublasOperation_t op, int m, int n, const double *alpha, const double *A, int lda, const double *x, int incx, const double *beta, double *y, int incy )
 	{
 		return cublasDgemv( handle, op, m, n, alpha, A, lda, x, incx, beta, y, incy );
 	}
 
-	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgemv( cublasHandle_t handle, cublasOperation_t op, int m, int n, const ComplexFloat *alpha, const ComplexFloat *A, int lda, const ComplexFloat *x, int incx, const ComplexFloat *beta, ComplexFloat *y, int incy )
+	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgemv( cublasHandle_t &handle, cublasOperation_t op, int m, int n, const ComplexFloat *alpha, const ComplexFloat *A, int lda, const ComplexFloat *x, int incx, const ComplexFloat *beta, ComplexFloat *y, int incy )
 	{
 		return cublasCgemv( handle, op, m, n, (const cuFloatComplex*)alpha, (const cuFloatComplex*)A, lda, (const cuFloatComplex*)x, incx, (const cuFloatComplex*)beta, (cuFloatComplex*)y, incy );
 	}
 
-	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgemv( cublasHandle_t handle, cublasOperation_t op, int m, int n, const ComplexDouble *alpha, const ComplexDouble *A, int lda, const ComplexDouble *x, int incx, const ComplexDouble *beta, ComplexDouble *y, int incy )
+	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgemv( cublasHandle_t &handle, cublasOperation_t op, int m, int n, const ComplexDouble *alpha, const ComplexDouble *A, int lda, const ComplexDouble *x, int incx, const ComplexDouble *beta, ComplexDouble *y, int incy )
 	{
 		return cublasZgemv( handle, op, m, n, (const cuDoubleComplex*)alpha, (const cuDoubleComplex*)A, lda, (const cuDoubleComplex*)x, incx, (const cuDoubleComplex*)beta, (cuDoubleComplex*)y, incy );
 	}
 
-	cublasStatus_t cublasOperations<int>::cublasTgetrfBatched( cublasHandle_t handle, int n, int *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<int>::cublasTgetrfBatched( cublasHandle_t &handle, int n, int *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
 	{
 		return CUBLAS_STATUS_NOT_SUPPORTED;
 	}
 
-	cublasStatus_t cublasOperations<float>::cublasTgetrfBatched( cublasHandle_t handle, int n, float *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<float>::cublasTgetrfBatched( cublasHandle_t &handle, int n, float *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
 	{
 		return cublasSgetrfBatched( handle, n, Aarray, lda, PivotArray, infoArray, BATCHSIZE );
 	}
 
-	cublasStatus_t cublasOperations<double>::cublasTgetrfBatched( cublasHandle_t handle, int n, double *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<double>::cublasTgetrfBatched( cublasHandle_t &handle, int n, double *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
 	{
 		return cublasDgetrfBatched( handle, n, Aarray, lda, PivotArray, infoArray, BATCHSIZE );
 	}
 
-	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgetrfBatched( cublasHandle_t handle, int n, ComplexFloat *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgetrfBatched( cublasHandle_t &handle, int n, ComplexFloat *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
 	{
 		return cublasCgetrfBatched( handle, n, (cuFloatComplex**)Aarray, lda, PivotArray, infoArray, BATCHSIZE );
 	}
 
-	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgetrfBatched( cublasHandle_t handle, int n, ComplexDouble *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgetrfBatched( cublasHandle_t &handle, int n, ComplexDouble *Aarray[], int lda, int *PivotArray, int *infoArray, int batchSize )
 	{
 		return cublasZgetrfBatched( handle, n, (cuDoubleComplex**)Aarray, lda, PivotArray, infoArray, BATCHSIZE );
 	}
 
-	cublasStatus_t cublasOperations<int>::cublasTgetriBatched( cublasHandle_t handle, int n, const int *Aarray[], int lda, int *PivotArray, int *Carray[], int ldc, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<int>::cublasTgetriBatched( cublasHandle_t &handle, int n, const int *Aarray[], int lda, int *PivotArray, int *Carray[], int ldc, int *infoArray, int batchSize )
 	{
 		return CUBLAS_STATUS_NOT_SUPPORTED;
 	}
 
-	cublasStatus_t cublasOperations<float>::cublasTgetriBatched( cublasHandle_t handle, int n, const float *Aarray[], int lda, int *PivotArray, float *Carray[], int ldc, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<float>::cublasTgetriBatched( cublasHandle_t &handle, int n, const float *Aarray[], int lda, int *PivotArray, float *Carray[], int ldc, int *infoArray, int batchSize )
 	{
 		return cublasSgetriBatched( handle, n, Aarray, lda, PivotArray, Carray, ldc, infoArray, BATCHSIZE );
 	}
 
-	cublasStatus_t cublasOperations<double>::cublasTgetriBatched( cublasHandle_t handle, int n, const double *Aarray[], int lda, int *PivotArray, double *Carray[], int ldc, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<double>::cublasTgetriBatched( cublasHandle_t &handle, int n, const double *Aarray[], int lda, int *PivotArray, double *Carray[], int ldc, int *infoArray, int batchSize )
 	{
 		return cublasDgetriBatched( handle, n, Aarray, lda, PivotArray, Carray, ldc, infoArray, BATCHSIZE );
 	}
 
-	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgetriBatched( cublasHandle_t handle, int n, const ComplexFloat *Aarray[], int lda, int *PivotArray, ComplexFloat *Carray[], int ldc, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgetriBatched( cublasHandle_t &handle, int n, const ComplexFloat *Aarray[], int lda, int *PivotArray, ComplexFloat *Carray[], int ldc, int *infoArray, int batchSize )
 	{
 		return cublasCgetriBatched( handle, n, (const cuFloatComplex**)Aarray, lda, PivotArray, (cuFloatComplex**)Carray, ldc, infoArray, BATCHSIZE );
 	}
 
-	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgetriBatched( cublasHandle_t handle, int n, const ComplexDouble *Aarray[], int lda, int *PivotArray, ComplexDouble *Carray[], int ldc, int *infoArray, int batchSize )
+	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgetriBatched( cublasHandle_t &handle, int n, const ComplexDouble *Aarray[], int lda, int *PivotArray, ComplexDouble *Carray[], int ldc, int *infoArray, int batchSize )
 	{
 		return cublasZgetriBatched( handle, n, (const cuDoubleComplex**)Aarray, lda, PivotArray, (cuDoubleComplex**)Carray, ldc, infoArray, BATCHSIZE );
 	}
 
-	cublasStatus_t cublasOperations<int>::cublasTgelsBatched( cublasHandle_t handle, cublasOperation_t trans, int m, int n, int nrhs, int *Aarray[], int lda, int *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
+	cublasStatus_t cublasOperations<int>::cublasTgelsBatched( cublasHandle_t &handle, cublasOperation_t trans, int m, int n, int nrhs, int *Aarray[], int lda, int *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
 	{
 		return CUBLAS_STATUS_NOT_SUPPORTED;
 	}
 
-	cublasStatus_t cublasOperations<float>::cublasTgelsBatched( cublasHandle_t handle, cublasOperation_t trans, int m, int n, int nrhs,  float *Aarray[], int lda, float *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
+	cublasStatus_t cublasOperations<float>::cublasTgelsBatched( cublasHandle_t &handle, cublasOperation_t trans, int m, int n, int nrhs,  float *Aarray[], int lda, float *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
 	{
 		return cublasSgelsBatched( handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize );
 	}
 
-	cublasStatus_t cublasOperations<double>::cublasTgelsBatched( cublasHandle_t handle, cublasOperation_t trans, int m, int n, int nrhs, double *Aarray[], int lda, double *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
+	cublasStatus_t cublasOperations<double>::cublasTgelsBatched( cublasHandle_t &handle, cublasOperation_t trans, int m, int n, int nrhs, double *Aarray[], int lda, double *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
 	{
 		return cublasDgelsBatched( handle, trans, m, n, nrhs, Aarray, lda, Carray, ldc, info, devInfoArray, batchSize );
 	}
 
-	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgelsBatched( cublasHandle_t handle, cublasOperation_t trans, int m, int n, int nrhs, ComplexFloat *Aarray[], int lda, ComplexFloat *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
+	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgelsBatched( cublasHandle_t &handle, cublasOperation_t trans, int m, int n, int nrhs, ComplexFloat *Aarray[], int lda, ComplexFloat *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
 	{
 		return cublasCgelsBatched( handle, trans, m, n, nrhs, (cuFloatComplex**)Aarray, lda, (cuFloatComplex**)Carray, ldc, info, devInfoArray, batchSize );
 	}
 
-	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgelsBatched( cublasHandle_t handle, cublasOperation_t trans, int m, int n, int nrhs, ComplexDouble *Aarray[], int lda, ComplexDouble *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
+	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgelsBatched( cublasHandle_t &handle, cublasOperation_t trans, int m, int n, int nrhs, ComplexDouble *Aarray[], int lda, ComplexDouble *Carray[], int ldc, int *info, int *devInfoArray, int batchSize )
 	{
 		return cublasZgelsBatched( handle, trans, m, n, nrhs, (cuDoubleComplex**)Aarray, lda, (cuDoubleComplex**)Carray, ldc, info, devInfoArray, batchSize );
 	}
 
-	cublasStatus_t cublasOperations<int>::cublasTgeqrfBatched( cublasHandle_t handle, int m, int n, int *Aarray[], int lda, int *TauArray[], int *info, int batchSize )
+	cublasStatus_t cublasOperations<int>::cublasTgeqrfBatched( cublasHandle_t &handle, int m, int n, int *Aarray[], int lda, int *TauArray[], int *info, int batchSize )
 	{
 		return CUBLAS_STATUS_NOT_SUPPORTED;
 	}
 
-	cublasStatus_t cublasOperations<float>::cublasTgeqrfBatched( cublasHandle_t handle, int m, int n, float *Aarray[], int lda, float *TauArray[], int *info, int batchSize )
+	cublasStatus_t cublasOperations<float>::cublasTgeqrfBatched( cublasHandle_t &handle, int m, int n, float *Aarray[], int lda, float *TauArray[], int *info, int batchSize )
 	{
 		return cublasSgeqrfBatched( handle, m, n, Aarray, lda, TauArray, info, batchSize );
 	}
 
-	cublasStatus_t cublasOperations<double>::cublasTgeqrfBatched( cublasHandle_t handle, int m, int n, double *Aarray[], int lda, double *TauArray[], int *info, int batchSize )
+	cublasStatus_t cublasOperations<double>::cublasTgeqrfBatched( cublasHandle_t &handle, int m, int n, double *Aarray[], int lda, double *TauArray[], int *info, int batchSize )
 	{
 		return cublasDgeqrfBatched( handle, m, n, Aarray, lda, TauArray, info, batchSize );
 	}
 
-	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgeqrfBatched( cublasHandle_t handle, int m, int n, ComplexFloat *Aarray[], int lda, ComplexFloat *TauArray[], int *info, int batchSize )
+	cublasStatus_t cublasOperations<ComplexFloat>::cublasTgeqrfBatched( cublasHandle_t &handle, int m, int n, ComplexFloat *Aarray[], int lda, ComplexFloat *TauArray[], int *info, int batchSize )
 	{
 		return cublasCgeqrfBatched( handle, m, n, (cuFloatComplex**)Aarray, lda, (cuFloatComplex**)TauArray, info, batchSize );
 	}
 
-	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgeqrfBatched( cublasHandle_t handle, int m, int n, ComplexDouble *Aarray[], int lda, ComplexDouble *TauArray[], int *info, int batchSize )
+	cublasStatus_t cublasOperations<ComplexDouble>::cublasTgeqrfBatched( cublasHandle_t &handle, int m, int n, ComplexDouble *Aarray[], int lda, ComplexDouble *TauArray[], int *info, int batchSize )
 	{
 		return cublasZgeqrfBatched( handle, m, n, (cuDoubleComplex**)Aarray, lda, (cuDoubleComplex**)TauArray, info, batchSize );
 	}

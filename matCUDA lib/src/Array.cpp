@@ -1363,14 +1363,14 @@ namespace matCUDA
 		if( m_data.m_numElements == 1)
 			return (*this)(0,0);
 
-		Array<ComplexFloat> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
+		Array<ComplexFloat> lu( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
 
 		try
 		{
-			stat = op.LU( this, &LU );
+			stat = op.lu( this, &lu );
 		
 			for( int i = 0; i < m_indexer->GetDescriptor().GetDim(1); i++ )
-				det *= LU(i,i);
+				det *= lu(i,i);
 		}
 		catch(std::exception &e)
 		{
@@ -1389,14 +1389,14 @@ namespace matCUDA
 		if( m_data.m_numElements == 1)
 			return (*this)(0,0);
 
-		Array<ComplexDouble> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
+		Array<ComplexDouble> lu( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
 
 		try
 		{
-			stat = op.LU( this, &LU );
+			stat = op.lu( this, &lu );
 		
 			for( int i = 0; i < m_indexer->GetDescriptor().GetDim(1); i++ )
-				det *= LU(i,i);
+				det *= lu(i,i);
 		}
 		catch(std::exception &e)
 		{
@@ -1416,15 +1416,15 @@ namespace matCUDA
 		if( m_data.m_numElements == 1)
 			return (*this)(0,0);
 
-		Array<TElement> LU( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
+		Array<TElement> lu( this->GetDescriptor().GetDim(0), this->GetDescriptor().GetDim(1) );
 
 		try
 		{
-			stat = op.LU( this, &LU );
+			stat = op.lu( this, &lu );
 		
 			if( stat == CUBLAS_STATUS_SUCCESS ) {
 				for( int i = 0; i < m_indexer->GetDescriptor().GetDim(1); i++ )
-					det *= LU(i,i);
+					det *= lu(i,i);
 			}
 			else
 				det = 0;
@@ -1441,9 +1441,9 @@ namespace matCUDA
 	template float Array<float>::determinant();
 	template double Array<double>::determinant();
 
-	// implementation of LU decomposition
+	// implementation of lu decomposition
 
-	template<> void Array<ComplexFloat>::LU( Array<ComplexFloat> *L, Array<ComplexFloat> *U, Array<ComplexFloat> *P )
+	template<> void Array<ComplexFloat>::lu( Array<ComplexFloat> *L, Array<ComplexFloat> *U, Array<ComplexFloat> *P )
 	{
 		cublasOperations<ComplexFloat> opCublas;
 		cublasStatus_t statCublas;
@@ -1462,9 +1462,9 @@ namespace matCUDA
 
 		try
 		{
-			//statCublas = opCublas.LU( this, U, P );
+			//statCublas = opCublas.lu( this, U, P );
 			//if( statCublas == CUBLAS_STATUS_SUCCESS )
-			statCusolver = opCusolver.LU( this, U, P );
+			statCusolver = opCusolver.lu( this, U, P );
 			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<ComplexFloat>( std::min(U->getDim(0),U->getDim(1)) );
@@ -1476,7 +1476,7 @@ namespace matCUDA
 				zeros_under_diag( U->data(), std::min(U->getDim(0),U->getDim(1)) );
 			}
 			else
-				std::cout << "LU decomposition failed" << std::endl;
+				std::cout << "lu decomposition failed" << std::endl;
 
 		}
 		catch(std::exception &e)
@@ -1485,7 +1485,7 @@ namespace matCUDA
 		}
 	}
 
-	template<> void Array<ComplexDouble>::LU( Array<ComplexDouble> *L, Array<ComplexDouble> *U, Array<ComplexDouble> *P )
+	template<> void Array<ComplexDouble>::lu( Array<ComplexDouble> *L, Array<ComplexDouble> *U, Array<ComplexDouble> *P )
 	{
 		cublasOperations<ComplexDouble> opCublas;
 		cublasStatus_t statCublas;
@@ -1504,9 +1504,9 @@ namespace matCUDA
 
 		try
 		{
-			//statCublas = opCublas.LU( this, U, P );
+			//statCublas = opCublas.lu( this, U, P );
 			//if( statCublas == CUBLAS_STATUS_SUCCESS )
-			statCusolver = opCusolver.LU( this, U, P );
+			statCusolver = opCusolver.lu( this, U, P );
 			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<ComplexDouble>( std::min(U->getDim(0),U->getDim(1)) );
@@ -1518,7 +1518,7 @@ namespace matCUDA
 				zeros_under_diag( U->data(), std::min(U->getDim(0),U->getDim(1)) );
 			}
 			else
-				std::cout << "LU decomposition failed" << std::endl;
+				std::cout << "lu decomposition failed" << std::endl;
 
 		}
 		catch(std::exception &e)
@@ -1528,7 +1528,7 @@ namespace matCUDA
 	}
 
 	template <typename TElement>
-	void Array<TElement>::LU( Array<TElement> *L, Array<TElement> *U, Array<TElement> *P )
+	void Array<TElement>::lu( Array<TElement> *L, Array<TElement> *U, Array<TElement> *P )
 	{
 		cublasOperations<TElement> opCublas;
 		cublasStatus_t statCublas;
@@ -1549,9 +1549,9 @@ namespace matCUDA
 
 		try
 		{
-			//statCublas = opCublas.LU( this, U, P );
+			//statCublas = opCublas.lu( this, U, P );
 			//if( statCublas == CUBLAS_STATUS_SUCCESS )
-			statCusolver = opCusolver.LU( this, U, P );
+			statCusolver = opCusolver.lu( this, U, P );
 			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<TElement>( std::min(U->getDim(0),U->getDim(1)) );
@@ -1563,7 +1563,7 @@ namespace matCUDA
 				zeros_under_diag( U->data(), std::min(U->getDim(0),U->getDim(1)) );
 			}
 			else
-				std::cout << "LU decomposition failed" << std::endl;
+				std::cout << "lu decomposition failed" << std::endl;
 
 		}
 		catch(std::exception &e)
@@ -1572,11 +1572,11 @@ namespace matCUDA
 		}
 	}
 
-	template void Array<int>::LU( Array<int> *L, Array<int> *U, Array<int> *P );
-	template void Array<float>::LU( Array<float> *L, Array<float> *U, Array<float> *P );
-	template void Array<double>::LU( Array<double> *L, Array<double> *U, Array<double> *P );
+	template void Array<int>::lu( Array<int> *L, Array<int> *U, Array<int> *P );
+	template void Array<float>::lu( Array<float> *L, Array<float> *U, Array<float> *P );
+	template void Array<double>::lu( Array<double> *L, Array<double> *U, Array<double> *P );
 
-	template<> void Array<ComplexFloat>::LU( Array<ComplexFloat> *L, Array<ComplexFloat> *U )
+	template<> void Array<ComplexFloat>::lu( Array<ComplexFloat> *L, Array<ComplexFloat> *U )
 	{
 		cublasOperations<ComplexFloat> opCublas;
 		cublasStatus_t statCublas;
@@ -1593,9 +1593,9 @@ namespace matCUDA
 
 		try
 		{
-			//statCublas = opCublas.LU( this, U );
+			//statCublas = opCublas.lu( this, U );
 			//if( statCublas == CUBLAS_STATUS_SUCCESS )
-			statCusolver = opCusolver.LU( this, U );
+			statCusolver = opCusolver.lu( this, U );
 			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<ComplexFloat>( std::min(U->getDim(0),U->getDim(1)) );
@@ -1607,7 +1607,7 @@ namespace matCUDA
 				zeros_under_diag( U->data(), std::min(U->getDim(0),U->getDim(1)) );
 			}
 			else
-				std::cout << "LU decomposition failed" << std::endl;
+				std::cout << "lu decomposition failed" << std::endl;
 
 		}
 		catch(std::exception &e)
@@ -1616,7 +1616,7 @@ namespace matCUDA
 		}
 	}
 
-	template<> void Array<ComplexDouble>::LU( Array<ComplexDouble> *L, Array<ComplexDouble> *U )
+	template<> void Array<ComplexDouble>::lu( Array<ComplexDouble> *L, Array<ComplexDouble> *U )
 	{
 		cublasOperations<ComplexDouble> opCublas;
 		cublasStatus_t statCublas;
@@ -1633,9 +1633,9 @@ namespace matCUDA
 
 		try
 		{
-			//statCublas = opCublas.LU( this, U );
+			//statCublas = opCublas.lu( this, U );
 			//if( statCublas == CUBLAS_STATUS_SUCCESS )
-			statCusolver = opCusolver.LU( this, U );
+			statCusolver = opCusolver.lu( this, U );
 			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<ComplexDouble>( std::min(U->getDim(0),U->getDim(1)) );
@@ -1647,7 +1647,7 @@ namespace matCUDA
 				zeros_under_diag( U->data(), std::min(U->getDim(0),U->getDim(1)) );
 			}
 			else
-				std::cout << "LU decomposition failed" << std::endl;
+				std::cout << "lu decomposition failed" << std::endl;
 
 		}
 		catch(std::exception &e)
@@ -1657,7 +1657,7 @@ namespace matCUDA
 	}
 
 	template <typename TElement>
-	void Array<TElement>::LU( Array<TElement> *L, Array<TElement> *U )
+	void Array<TElement>::lu( Array<TElement> *L, Array<TElement> *U )
 	{
 		cublasOperations<TElement> opCublas;
 		cublasStatus_t statCublas;
@@ -1676,9 +1676,9 @@ namespace matCUDA
 
 		try
 		{
-			//statCublas = opCublas.LU( this, U );
+			//statCublas = opCublas.lu( this, U );
 			//if( statCublas == CUBLAS_STATUS_SUCCESS )
-			statCusolver = opCusolver.LU( this, U );
+			statCusolver = opCusolver.lu( this, U );
 			if( statCusolver == CUSOLVER_STATUS_SUCCESS )
 			{
 				*L = eye<TElement>( std::min(U->getDim(0),U->getDim(1)) );
@@ -1690,7 +1690,7 @@ namespace matCUDA
 				zeros_under_diag( U->data(), std::min(U->getDim(0),U->getDim(1)) );
 			}
 			else
-				std::cout << "LU decomposition failed" << std::endl;
+				std::cout << "lu decomposition failed" << std::endl;
 
 		}
 		catch(std::exception &e)
@@ -1699,9 +1699,9 @@ namespace matCUDA
 		}
 	}
 
-	template void Array<int>::LU( Array<int> *L, Array<int> *U );
-	template void Array<float>::LU( Array<float> *L, Array<float> *U );
-	template void Array<double>::LU( Array<double> *L, Array<double> *U );
+	template void Array<int>::lu( Array<int> *L, Array<int> *U );
+	template void Array<float>::lu( Array<float> *L, Array<float> *U );
+	template void Array<double>::lu( Array<double> *L, Array<double> *U );
 
 	// implementation of invert
 
@@ -1725,8 +1725,8 @@ namespace matCUDA
 
 		try
 		{
-			statCusolver = opCusolver.invert_zerocopy( &result, this );
-			//statCusolver = opCusolver.invert( &result, this );
+			//statCusolver = opCusolver.invert_zerocopy( &result, this );
+			statCusolver = opCusolver.invert( &result, this );
 			//statCublas = opCublas.invert_zerocopy( &result, this );
 			//statCublas = opCublas.invert( &result, this );
 		}
@@ -1748,20 +1748,24 @@ namespace matCUDA
 	template Array<ComplexFloat> Array<ComplexFloat>::invert();
 	template Array<ComplexDouble> Array<ComplexDouble>::invert();
 
-	// implementation of LS solution
+	// implementation of ls solution
 
 	template <typename TElement>
-	Array<TElement> Array<TElement>::LS( Array<TElement> *A )
+	Array<TElement> Array<TElement>::ls( Array<TElement> *A )
 	{
-		cublasOperations<TElement> op;
-		cublasStatus_t stat;
+		cublasOperations<TElement> opCublas;
+		cublasStatus_t statCublas;
+
+		cusolverOperations<TElement> opCusolver;
+		cusolverStatus_t statCusolver;
 	
 		Array<TElement> result( A->GetDescriptor().GetDim( 1 ), this->GetDescriptor().GetDim( 1 ) );
 		Array<TElement> aux = *this;
 
 		try
 		{
-			stat = op.LS( A, &result, &aux );
+			//statCublas = opCublas.ls( A, &result, &aux );
+			statCusolver = opCusolver.ls( A, &result, &aux );
 		}
 		catch(std::exception &e)
 		{
@@ -1771,11 +1775,11 @@ namespace matCUDA
 		return result;
 	}
 
-	template Array<int> Array<int>::LS( Array<int> *A );
-	template Array<float> Array<float>::LS( Array<float> *A );
-	template Array<double> Array<double>::LS( Array<double> *A );
-	template Array<ComplexFloat> Array<ComplexFloat>::LS( Array<ComplexFloat> *A );
-	template Array<ComplexDouble> Array<ComplexDouble>::LS( Array<ComplexDouble> *A );
+	template Array<int> Array<int>::ls( Array<int> *A );
+	template Array<float> Array<float>::ls( Array<float> *A );
+	template Array<double> Array<double>::ls( Array<double> *A );
+	template Array<ComplexFloat> Array<ComplexFloat>::ls( Array<ComplexFloat> *A );
+	template Array<ComplexDouble> Array<ComplexDouble>::ls( Array<ComplexDouble> *A );
 
 	// implementation of detrend
 
@@ -1794,7 +1798,7 @@ namespace matCUDA
 				x(j,1) = 1;
 			}
 
-			Array<TElement> p = aux.LS( &x );
+			Array<TElement> p = aux.ls( &x );
 			aux = aux - x*p;
 
 			for( int j = 0; j < x.GetDescriptor().GetDim(0); j++ )
@@ -2179,10 +2183,10 @@ namespace matCUDA
 	template Array<ComplexFloat> Array<ComplexFloat>::getColumn(index_t col);
 	template Array<ComplexDouble> Array<ComplexDouble>::getColumn(index_t col);
 
-	// implementation of QR decomposition
+	// implementation of qr decomposition
 
 	template <typename TElement>
-	void Array<TElement>::QR( Array<TElement> *Q, Array<TElement> *R )
+	void Array<TElement>::qr( Array<TElement> *Q, Array<TElement> *R )
 	{
 		cublasOperations<TElement> opCublas;
 		cublasStatus_t statCublas;
@@ -2199,14 +2203,14 @@ namespace matCUDA
 
 		try
 		{
-			//statCublas = opCublas.QR( this, Q, R );
+			//statCublas = opCublas.qr( this, Q, R );
 			//if( statCublas != CUBLAS_STATUS_SUCCESS )
-			//	std::cout << "QR decomposition failed" << std::endl;
+			//	std::cout << "qr decomposition failed" << std::endl;
 						
-			statCusolver = opCusolver.QR( this, Q, R );
-			// statCusolver = opCusolver.QR_zerocopy( this, Q, R );
+			statCusolver = opCusolver.qr( this, Q, R );
+			// statCusolver = opCusolver.qr_zerocopy( this, Q, R );
 			if( statCusolver != CUSOLVER_STATUS_SUCCESS )
-				std::cout << "QR decomposition failed" << std::endl;
+				std::cout << "qr decomposition failed" << std::endl;
 		}
 		catch(std::exception &e)
 		{
@@ -2214,11 +2218,11 @@ namespace matCUDA
 		}
 	}
 
-	template void Array<int>::QR( Array<int> *Q, Array<int> *R );
-	template void Array<float>::QR( Array<float> *Q, Array<float> *R );
-	template void Array<double>::QR( Array<double> *Q, Array<double> *R );
-	template void Array<ComplexFloat>::QR( Array<ComplexFloat> *Q, Array<ComplexFloat> *R );
-	template void Array<ComplexDouble>::QR( Array<ComplexDouble> *Q, Array<ComplexDouble> *R );
+	template void Array<int>::qr( Array<int> *Q, Array<int> *R );
+	template void Array<float>::qr( Array<float> *Q, Array<float> *R );
+	template void Array<double>::qr( Array<double> *Q, Array<double> *R );
+	template void Array<ComplexFloat>::qr( Array<ComplexFloat> *Q, Array<ComplexFloat> *R );
+	template void Array<ComplexDouble>::qr( Array<ComplexDouble> *Q, Array<ComplexDouble> *R );
 
 	template <typename TElement>
 	Array<TElement> Array<TElement>::eig( Array<TElement> *eigenvectors )

@@ -101,10 +101,9 @@ namespace matCUDA
 		Array<TElement> getColumn( const index_t col );
 		Array<TElement> hermitian(); // gpu
 		Array<TElement> invert(); // gpu
-		//Array<TElement> LS( Array<TElement> A ); // gpu
-		Array<TElement> LS( Array<TElement> *A ); // gpu
-		void			LU( Array<TElement> *L, Array<TElement> *U, Array<TElement> *P ); // gpu
-		void			LU( Array<TElement> *L, Array<TElement> *U ); // gpu
+		Array<TElement> ls( Array<TElement> *A ); // gpu
+		void			lu( Array<TElement> *L, Array<TElement> *U, Array<TElement> *P ); // gpu
+		void			lu( Array<TElement> *L, Array<TElement> *U ); // gpu
 		Array<TElement>	max(); // gpu
 		Array<TElement>	max( Array<TElement> *idx ); // gpu
 		Array<TElement>	min(); // gpu
@@ -112,7 +111,7 @@ namespace matCUDA
 		Array<TElement> minor(const int row, const int column);
 		TElement		norm(); // gpu
 		void			print();
-		void			QR( Array<TElement> *Q, Array<TElement> *R ); // gpu
+		void			qr( Array<TElement> *Q, Array<TElement> *R ); // gpu
 		Array<TElement> sin();
 		Array<TElement> sind();
 		Array<TElement> submatrix( const index_t rowBegin, const index_t rowEnd, const index_t colBegin, const index_t colEnd ); // partial
