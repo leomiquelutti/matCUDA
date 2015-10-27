@@ -1356,8 +1356,10 @@ namespace matCUDA
 
 	template<> ComplexFloat Array<ComplexFloat>::determinant()
 	{
-		cublasOperations<ComplexFloat> op;
-		cublasStatus_t stat;
+		cublasOperations<ComplexFloat> opCublas;
+		cublasStatus_t statCublas;
+		cusolverOperations<ComplexFloat> opCusolver;
+		cusolverStatus_t statCusolver;
 		ComplexFloat det = ComplexFloat(1,0);
 
 		if( m_data.m_numElements == 1)
@@ -1367,7 +1369,8 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.lu( this, &lu );
+			//statCublas = opCublas.lu( this, &lu );
+			statCusolver = opCusolver.lu( this, &lu );
 		
 			for( int i = 0; i < m_indexer->GetDescriptor().GetDim(1); i++ )
 				det *= lu(i,i);
@@ -1382,8 +1385,10 @@ namespace matCUDA
 
 	template<> ComplexDouble Array<ComplexDouble>::determinant()
 	{
-		cublasOperations<ComplexDouble> op;
-		cublasStatus_t stat;
+		cublasOperations<ComplexDouble> opCublas;
+		cublasStatus_t statCublas;
+		cusolverOperations<ComplexDouble> opCusolver;
+		cusolverStatus_t statCusolver;
 		ComplexDouble det = ComplexDouble(1,0);
 
 		if( m_data.m_numElements == 1)
@@ -1393,7 +1398,8 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.lu( this, &lu );
+			//statCublas = opCublas.lu( this, &lu );
+			statCusolver = opCusolver.lu( this, &lu );
 		
 			for( int i = 0; i < m_indexer->GetDescriptor().GetDim(1); i++ )
 				det *= lu(i,i);
@@ -1409,8 +1415,10 @@ namespace matCUDA
 	template <typename TElement>
 	TElement Array<TElement>::determinant()
 	{
-		cublasOperations<TElement> op;
-		cublasStatus_t stat;
+		cublasOperations<TElement> opCublas;
+		cublasStatus_t statCublas;
+		cusolverOperations<TElement> opCusolver;
+		cusolverStatus_t statCusolver;
 		TElement det = 1;
 
 		if( m_data.m_numElements == 1)
@@ -1420,9 +1428,11 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.lu( this, &lu );
+			//statCublas = opCublas.lu( this, &lu );
+			statCusolver = opCusolver.lu( this, &lu );
 		
-			if( stat == CUBLAS_STATUS_SUCCESS ) {
+			//if( statCublas == CUBLAS_STATUS_SUCCESS ) {
+			if( statCusolver == CUSOLVER_STATUS_SUCCESS ) {
 				for( int i = 0; i < m_indexer->GetDescriptor().GetDim(1); i++ )
 					det *= lu(i,i);
 			}
@@ -1764,8 +1774,8 @@ namespace matCUDA
 
 		try
 		{
-			//statCublas = opCublas.ls( A, &result, &aux );
-			statCusolver = opCusolver.ls( A, &result, &aux );
+			statCublas = opCublas.ls( A, &result, &aux );
+			//statCusolver = opCusolver.ls( A, &result, &aux );
 		}
 		catch(std::exception &e)
 		{

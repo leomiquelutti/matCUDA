@@ -14,7 +14,6 @@ namespace matCUDA
 
 		TElement *d_A, *Workspace, *d_C;
 		int INFOh = 2;
-		C->print();
 
 		CUDA_CALL( cudaMalloc(&d_A, A->getDim(0) * A->getDim(1) * sizeof(TElement)) );
 		CUDA_CALL( cudaMalloc(&d_C, C->getDim(0) * C->getDim(1) * sizeof(TElement)) );
@@ -57,7 +56,7 @@ namespace matCUDA
 		//toc();
 		////***** end of performance test *****/////
 
-		//CUDA_CALL( cudaDeviceSynchronize() );
+		CUDA_CALL( cudaDeviceSynchronize() );
 
 		// copy from GPU
 		INFOh = 2;
@@ -69,9 +68,7 @@ namespace matCUDA
 			return CUSOLVER_STATUS_EXECUTION_FAILED;
 		}
 	
-		//CUDA_CALL( cudaMemcpy( A->m_data.GetElements(), d_C, A->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 		CUDA_CALL( cudaMemcpy( C->m_data.GetElements(), d_C, C->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
-		C->print();
 		for( int i = 0; i< x->GetDescriptor().GetDim( 0 ); i++ ) {
 			for( int j = 0; j < x->GetDescriptor().GetDim( 1 ); j++ )
 				(*x)( i, j ) = (*C)( i, j );

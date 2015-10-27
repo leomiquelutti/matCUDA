@@ -831,16 +831,16 @@ namespace matCUDA
 		CUDA_CALL( cudaMemcpy(Aarray,matrices, sizeof(TElement*), cudaMemcpyHostToDevice) );
 		
 		/////***** performance test *****/////
-		CUDA_CALL( cudaDeviceSynchronize() );
-		tic();
-		for( int i = 0; i < 1; i++ ) {
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//tic();
+		//for( int i = 0; i < 1; i++ ) {
 
 		// CALL CUBLAS FUNCTION
 		CUBLAS_CALL( cublasTgetrfBatched( handle, matrix_size.Arows, Aarray, lda, PivotArray, infoArray, BATCHSIZE ) );
 
-		}
-		CUDA_CALL( cudaDeviceSynchronize() );
-		toc();
+		//}
+		//CUDA_CALL( cudaDeviceSynchronize() );
+		//toc();
 		////***** end of performance test *****/////
 
 		// copy from GPU

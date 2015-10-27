@@ -7,38 +7,6 @@
 
 //// minor
 
-// int type
-void test_minor_int_1()
-{
-	Array<int> m( 2, 2 );
-	m( 0, 0 ) = 0;
-	m( 0, 1 ) = 1;
-	m( 1, 0 ) = 2;
-	m( 1, 1 ) = 3;
-	m.print();
-
-	Array<int> control( 1, 1 );
-
-	control = m.minor( 1, 0 );
-	control.print();
-}
-
-void test_minor_int_2()
-{
-	Array<int> m( 3, 5 );
-	for( int i = 0; i < m.GetDescriptor().GetDim(0); i++ )
-	{
-		for( int j = 0; j < m.GetDescriptor().GetDim(1); j++ )
-			m( i, j ) = j + i*m.GetDescriptor().GetDim(1);
-	}
-	m.print();
-
-	Array<int> control( 2, 4 );
-
-	control = m.minor( 1, 0 );
-	control.print();
-}
-
 // float type
 void test_minor_float_1()
 {
@@ -146,19 +114,6 @@ void test_minor_complex_2()
 
 //// norm
 
-// int type
-void test_norm_int_1()
-{
-	Array<int> m( sizeSmall );
-	m( 0 ) = 0;
-	m( 1 ) = 3;
-	m( 2 ) = 4;
-	m( 3 ) = 12;
-	int control = 13;
-
-	TEST_CALL( m.norm(), control, BOOST_CURRENT_FUNCTION );
-}
-
 // float type
 void test_norm_float_1()
 {
@@ -202,35 +157,6 @@ void test_norm_complex_1()
 }
 
 //// eye
-
-// int type
-void test_eye_int_1()
-{
-	Array<int> m = eye<int>( sizeSmall );
-	Array<int> control( sizeSmall, sizeSmall );
-	for( int i = 0; i < sizeSmall; i++ ) {
-		for( int j = i; j < i + 1; j++ )
-			control(i,j) = i == j;
-	}
-
-	m.print();
-	
-	if( m != control )
-		BOOST_FAIL("m != control!!!");
-}
-
-void test_eye_int_2()
-{
-	Array<int> m = eye<int>( sizeLarge );
-	Array<int> control( sizeLarge, sizeLarge );
-	for( int i = 0; i < sizeLarge; i++ ) {
-		for( int j = i; j < i + 1; j++ )
-			control(i,j) = i == j;
-	}
-	
-	if( m != control )
-		BOOST_FAIL("m != control!!!");
-}
 
 // float type
 void test_eye_float_1()
