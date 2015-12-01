@@ -88,6 +88,27 @@ namespace matCUDA
 		return !(*this == other);
 	}
 
+	ArrayDescriptor& ArrayUtil::GetArrayDescriptor(int count, ...)
+	{
+		ArrayDescriptor *arr_desc = new ArrayDescriptor(count);
+
+		va_list args;
+		va_start(args, count);
+
+		for(int i = 0; i < count; i++)
+			arr_desc->m_dim[i] = va_arg(args, index_t);
+
+		va_end(args);
+
+		return *arr_desc;
+	}
+
+	ArrayDescriptor& ArrayUtil::GetArrayDescriptor(ArrayDescriptor &source)
+	{
+		ArrayDescriptor *arr_desc = new ArrayDescriptor(source);
+		return *arr_desc;
+	}
+
 	// LinearIndexerND implementation
 
 	LinearIndexer::LinearIndexer(ArrayDescriptor &descriptor)
@@ -2276,7 +2297,7 @@ namespace matCUDA
 	template Array<ComplexDouble> Array<ComplexDouble>::eig( Array<ComplexDouble> *eigenvectors );
 
 	template <typename TElement>
-	void Array<TElement>::Array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
+	void Array<TElement>::array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
 															  int *cooColIndexHostPtr, TElement *cooValHostPtr )
 	{
 		cooRowIndexHostPtr = (int *)malloc(nnz*sizeof(cooRowIndexHostPtr[0])); 
@@ -2301,15 +2322,15 @@ namespace matCUDA
 		}
 	}
 
-	template void Array<int>::Array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
+	template void Array<int>::array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
 															  int *cooColIndexHostPtr, int *cooValHostPtr );
-	template void Array<float>::Array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
+	template void Array<float>::array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
 															  int *cooColIndexHostPtr, float *cooValHostPtr );
-	template void Array<double>::Array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
+	template void Array<double>::array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
 															  int *cooColIndexHostPtr, double *cooValHostPtr );
-	//template void Array<ComplexFloat>::Array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
+	//template void Array<ComplexFloat>::array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
 	//														  int *cooColIndexHostPtr, ComplexFloat *cooValHostPtr );
-	//template void Array<ComplexDouble>::Array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
+	//template void Array<ComplexDouble>::array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, 
 	//														  int *cooColIndexHostPtr, ComplexDouble *cooValHostPtr );
 
 	template <typename TElement>
@@ -2385,7 +2406,7 @@ namespace matCUDA
 			CUDA_CALL( cudaMemcpy( d_vec, (void*)(pos), rows * sizeof(TElement), cudaMemcpyHostToDevice) );
 
 			auxIdx = -1;
-			result( 0, i ) = max_cuda( d_vec, &auxIdx, rows );
+			result( 0, i ) = cuda_max( d_vec, &auxIdx, rows );
 
 			pos += rows;
 		}
@@ -2415,7 +2436,7 @@ namespace matCUDA
 			CUDA_CALL( cudaMemcpy( d_vec, (void*)(pos), rows * sizeof(TElement), cudaMemcpyHostToDevice) );
 
 			auxIdx = -1;
-			result( 0, i ) = max_cuda( d_vec, &auxIdx, rows );
+			result( 0, i ) = cuda_max( d_vec, &auxIdx, rows );
 			(*idx)( 0, i ) = auxIdx;
 
 			pos += rows;
@@ -2446,7 +2467,7 @@ namespace matCUDA
 			CUDA_CALL( cudaMemcpy( d_vec, (void*)(pos), rows * sizeof(TElement), cudaMemcpyHostToDevice) );
 
 			auxIdx = -1;
-			result( 0, i ) = min_cuda( d_vec, &auxIdx, rows );
+			result( 0, i ) = cuda_min( d_vec, &auxIdx, rows );
 
 			pos += rows;
 		}
@@ -2476,7 +2497,7 @@ namespace matCUDA
 			CUDA_CALL( cudaMemcpy( d_vec, (void*)(pos), rows * sizeof(TElement), cudaMemcpyHostToDevice) );
 
 			auxIdx = -1;
-			result( 0, i ) = min_cuda( d_vec, &auxIdx, rows );
+			result( 0, i ) = cuda_min( d_vec, &auxIdx, rows );
 			(*idx)( 0, i ) = auxIdx;
 
 			pos += rows;
@@ -2512,26 +2533,59 @@ namespace matCUDA
 	template Array<ComplexFloat> Array<ComplexFloat>::roots();
 	template Array<ComplexDouble> Array<ComplexDouble>::roots();
 
-	ArrayDescriptor& ArrayUtil::GetArrayDescriptor(int count, ...)
+	template <typename TElement>
+	Array<TElement> Array<TElement>::elementWiseMultiply( Array<TElement> *A )
 	{
-		ArrayDescriptor *arr_desc = new ArrayDescriptor(count);
+		if (m_indexer->GetDescriptor().GetNDim() != A->m_indexer->GetDescriptor().GetNDim())
+			return *this;
+		else if(m_indexer->GetDescriptor().GetNumberOfElements() != A->getNElements())
+			return *this;		
 
-		va_list args;
-		va_start(args, count);
+		TElement *d_A, *d_B, *d_result;
 
-		for(int i = 0; i < count; i++)
-			arr_desc->m_dim[i] = va_arg(args, index_t);
+		Array<TElement> result( this->getDim( 0 ), this->getDim( 1 ) );
 
-		va_end(args);
+		// pass host pointer to device
+		CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &d_B, this->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &d_result, result.m_data.GetElements(), 0 ) );
 
-		return *arr_desc;
+		cuda_elementwise_multiplication( d_A, d_B, d_result, A->getNElements() );
+
+		return result;
 	}
 
-	ArrayDescriptor& ArrayUtil::GetArrayDescriptor(ArrayDescriptor &source)
+	template Array<float> Array<float>::elementWiseMultiply( Array<float> *A );
+	template Array<double> Array<double>::elementWiseMultiply( Array<double> *A );
+	template Array<ComplexFloat> Array<ComplexFloat>::elementWiseMultiply( Array<ComplexFloat> *A );
+	template Array<ComplexDouble> Array<ComplexDouble>::elementWiseMultiply( Array<ComplexDouble> *A );
+
+	template <typename TElement>
+	Array<TElement> Array<TElement>::elementWiseDivide( Array<TElement> *A )
 	{
-		ArrayDescriptor *arr_desc = new ArrayDescriptor(source);
-		return *arr_desc;
+		if (m_indexer->GetDescriptor().GetNDim() != A->m_indexer->GetDescriptor().GetNDim())
+			return *this;
+		else if(m_indexer->GetDescriptor().GetNumberOfElements() != A->getNElements())
+			return *this;		
+
+		TElement *d_A, *d_B, *d_result;
+
+		Array<TElement> result( this->getDim( 0 ), this->getDim( 1 ) );
+
+		// pass host pointer to device
+		CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &d_B, this->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &d_result, result.m_data.GetElements(), 0 ) );
+
+		cuda_elementwise_division( d_A, d_B, d_result, A->getNElements() );
+
+		return result;
 	}
+
+	template Array<float> Array<float>::elementWiseDivide( Array<float> *A );
+	template Array<double> Array<double>::elementWiseDivide( Array<double> *A );
+	template Array<ComplexFloat> Array<ComplexFloat>::elementWiseDivide( Array<ComplexFloat> *A );
+	template Array<ComplexDouble> Array<ComplexDouble>::elementWiseDivide( Array<ComplexDouble> *A );
 
 	void ArrayUtil::ReleaseArrayDescriptor(ArrayDescriptor &descriptor)
 	{

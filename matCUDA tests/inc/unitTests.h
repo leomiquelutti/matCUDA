@@ -442,6 +442,32 @@ void test_min_double_4();
 void test_min_double_5();
 void test_min_double_6();
 
+// UnitTest20.cpp
+void test_elementwise_multiplication_float_1();
+void test_elementwise_multiplication_float_2();
+void test_elementwise_multiplication_float_3();
+void test_elementwise_multiplication_float_4();
+void test_elementwise_multiplication_double_1();
+void test_elementwise_multiplication_double_2();
+void test_elementwise_multiplication_double_3();
+void test_elementwise_multiplication_double_4();
+void test_elementwise_multiplication_complex_1();
+void test_elementwise_multiplication_complex_2();
+void test_elementwise_multiplication_complex_3();
+void test_elementwise_multiplication_complex_4();
+void test_elementwise_division_float_1();
+void test_elementwise_division_float_2();
+void test_elementwise_division_float_3();
+void test_elementwise_division_float_4();
+void test_elementwise_division_double_1();
+void test_elementwise_division_double_2();
+void test_elementwise_division_double_3();
+void test_elementwise_division_double_4();
+void test_elementwise_division_complex_1();
+void test_elementwise_division_complex_2();
+void test_elementwise_division_complex_3();
+void test_elementwise_division_complex_4();
+
 // UnitTestDraft.cpp
 void draft();
 

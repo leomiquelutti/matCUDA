@@ -15,7 +15,7 @@ int main()
 	Array<ComplexDouble> m1 = rand<ComplexDouble>( size, size );
 
 	// multiplies m1 times v1 adn stores in v2
-	Array<ComplexDouble> v2 = m1*v1;
+	Array<ComplexDouble> v2 = m1*v1*2;
 
 	// creates m2 with dimensions of m1
 	Array<ComplexDouble> m2( m1.getDim(0), m1.getDim(1) );

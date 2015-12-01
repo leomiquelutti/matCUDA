@@ -1,5 +1,63 @@
 #include "unitTests.h"
 
+void draft()
+{	
+	// here you do your stuff
+
+	size_t size = 5e3, nIter = 10;
+
+	Array<double> a = rand<double>( size, size );
+	Array<double> b = rand<double>( size, size );
+
+	b = a.elementWiseMultiply( &b );
+}
+
+
+//void draft()
+//{	
+//	// here you do your stuff
+//
+//	size_t size = 5e3, nIter = 10;
+//
+//	/////* test 01 - rand *//////
+//	//Array<ComplexDouble> m1 = rand<ComplexDouble>( size, size );
+//
+//	/////* test 02 - add *//////
+//	//Array<ComplexDouble> m1 = rand<ComplexDouble>( size, size );
+//	//Array<ComplexDouble> m2 = rand<ComplexDouble>( size, size );
+//	//Array<ComplexDouble> m3( size, size );
+//	//m3 = m2 + m1;	
+//
+//	/////* test 03 - times *//////
+//	//Array<ComplexDouble> m1 = rand<ComplexDouble>( size, size );
+//	//Array<ComplexDouble> m2 = rand<ComplexDouble>( size, size );
+//	//Array<ComplexDouble> m3( size, size );
+//	//m3 = m2*m1;	
+//
+//	/////* test 04 - lu *//////
+//	//Array<ComplexDouble> m = rand<ComplexDouble>( size, size );
+//	//Array<ComplexDouble> l( size, size );
+//	//Array<ComplexDouble> u( size, size );
+//	//m.lu( &l, &u );	
+//
+//	/////* test 05 - fft *//////
+//	//Array<ComplexDouble> v = rand<ComplexDouble>( pow(2,26) );
+//	//Array<ComplexDouble> V( pow(2,26) );
+//	// V = v.fft();	
+//
+//	/////* test 06 - ls *//////
+//	//size_t size1 = 1e4, size2 = 1e2, size3 = 1e2;
+//	//Array<ComplexDouble> a = rand<ComplexDouble>( size1, size2 );
+//	//Array<ComplexDouble> x = rand<ComplexDouble>( size1, size3 );
+//	//Array<ComplexDouble> p( size2, size3 );
+//	//p = x.ls( &a );
+//
+//	/////* test 07 - inv *//////
+//	//Array<ComplexDouble> m = rand<ComplexDouble>( size, size );
+//	//Array<ComplexDouble> m_inv( size, size );
+//	//m_inv = m.invert();
+//}
+
 //#include "matCUDA.h"
 //using namespace matCUDA;
 //
@@ -51,49 +109,3 @@
 //	// print v1 on screen
 //	v1.print();
 //}
-
-
-void draft()
-{	
-	// here you do your stuff
-
-	size_t size = 5e3, nIter = 10;
-
-	/////* test 01 - rand *//////
-	//Array<ComplexDouble> m1 = rand<ComplexDouble>( size, size );
-
-	/////* test 02 - add *//////
-	//Array<ComplexDouble> m1 = rand<ComplexDouble>( size, size );
-	//Array<ComplexDouble> m2 = rand<ComplexDouble>( size, size );
-	//Array<ComplexDouble> m3( size, size );
-	//m3 = m2 + m1;	
-
-	/////* test 03 - times *//////
-	//Array<ComplexDouble> m1 = rand<ComplexDouble>( size, size );
-	//Array<ComplexDouble> m2 = rand<ComplexDouble>( size, size );
-	//Array<ComplexDouble> m3( size, size );
-	//m3 = m2*m1;	
-
-	/////* test 04 - lu *//////
-	//Array<ComplexDouble> m = rand<ComplexDouble>( size, size );
-	//Array<ComplexDouble> l( size, size );
-	//Array<ComplexDouble> u( size, size );
-	//m.lu( &l, &u );	
-
-	/////* test 05 - fft *//////
-	//Array<ComplexDouble> v = rand<ComplexDouble>( pow(2,26) );
-	//Array<ComplexDouble> V( pow(2,26) );
-	// V = v.fft();	
-
-	/////* test 06 - ls *//////
-	//size_t size1 = 1e4, size2 = 1e2, size3 = 1e2;
-	//Array<ComplexDouble> a = rand<ComplexDouble>( size1, size2 );
-	//Array<ComplexDouble> x = rand<ComplexDouble>( size1, size3 );
-	//Array<ComplexDouble> p( size2, size3 );
-	//p = x.ls( &a );
-
-	/////* test 07 - inv *//////
-	//Array<ComplexDouble> m = rand<ComplexDouble>( size, size );
-	//Array<ComplexDouble> m_inv( size, size );
-	//m_inv = m.invert();
-}

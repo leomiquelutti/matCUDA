@@ -1129,71 +1129,9 @@ __host__ cudaError_t determinant(T *c, const T *dev_a, __int32 rows)
 template __host__ cudaError_t determinant(float *c, const float *dev_a, __int32 rows);
 template __host__ cudaError_t determinant(double *c, const double *dev_a, __int32 rows);
 
-template <typename T>
-__host__ void zeros_under_diag(T *a, __int32 size)
-{    
-	dim3 threadsPerBlock2( 32, 32 );
-	dim3 blocksPerGrid2( min( (size + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (size + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+// put zeros under the main diagonal of matrix
 
-	//zeros_under_diag_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
-	zeros_under_diag_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
-}
-
-template __host__ void zeros_under_diag( int *a, __int32 size );
-template __host__ void zeros_under_diag( float *a, __int32 size );
-template __host__ void zeros_under_diag( double *a, __int32 size );
-template __host__ void zeros_under_diag( ComplexFloat *a, __int32 size );
-template __host__ void zeros_under_diag( ComplexDouble *a, __int32 size );
-
-__global__ void zeros_under_diag_kernel(int *a, __int32 size)
-{    
-	// index
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line > 0 && line < size && column < line )
-	{
-		a[line + column*size] = 0;
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void zeros_under_diag_kernel(float *a, __int32 size)
-{    
-	// index
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line > 0 && line < size && column < line )
-	{
-		a[line + column*size] = 0;
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void zeros_under_diag_kernel(double *a, __int32 size)
-{    
-	// index
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line > 0 && line < size && column < line )
-	{
-		a[line + column*size] = 0;
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void zeros_under_diag_kernel(ComplexFloat *a, __int32 size)
+template<> __global__ void zeros_under_diag_kernel(ComplexFloat *a, __int32 size)
 {    
 	// index
 	cuFloatComplex *aux;
@@ -1211,7 +1149,7 @@ __global__ void zeros_under_diag_kernel(ComplexFloat *a, __int32 size)
 	__syncthreads();
 }
 
-__global__ void zeros_under_diag_kernel(ComplexDouble *a, __int32 size)
+template<> __global__ void zeros_under_diag_kernel(ComplexDouble *a, __int32 size)
 {    
 	// index
 	cuDoubleComplex *aux;
@@ -1228,6 +1166,185 @@ __global__ void zeros_under_diag_kernel(ComplexDouble *a, __int32 size)
 
 	__syncthreads();
 }
+template <typename T>
+__global__ void zeros_under_diag_kernel(T *a, __int32 size)
+{    
+	// index
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line > 0 && line < size && column < line )
+	{
+		a[line + column*size] = 0;
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
+template __global__ void zeros_under_diag_kernel( int *a, __int32 size );
+template __global__ void zeros_under_diag_kernel( float *a, __int32 size );
+template __global__ void zeros_under_diag_kernel( double *a, __int32 size );
+
+template <typename T>
+__host__ void zeros_under_diag(T *a, __int32 size)
+{    
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (size + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (size + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	//zeros_under_diag_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
+	zeros_under_diag_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
+}
+
+template __host__ void zeros_under_diag( int *a, __int32 size );
+template __host__ void zeros_under_diag( float *a, __int32 size );
+template __host__ void zeros_under_diag( double *a, __int32 size );
+template __host__ void zeros_under_diag( ComplexFloat *a, __int32 size );
+template __host__ void zeros_under_diag( ComplexDouble *a, __int32 size );
+
+//__global__ void zeros_under_diag_kernel(int *a, __int32 size)
+//{    
+//	// index
+//	int column = threadIdx.x + blockIdx.x*blockDim.x;
+//	int line = threadIdx.y + blockIdx.y*blockDim.y;
+//
+//	while( line > 0 && line < size && column < line )
+//	{
+//		a[line + column*size] = 0;
+//		column += blockDim.x * gridDim.x;
+//		line += blockDim.y * gridDim.y;
+//	}
+//
+//	__syncthreads();
+//}
+//
+//__global__ void zeros_under_diag_kernel(float *a, __int32 size)
+//{    
+//	// index
+//	int column = threadIdx.x + blockIdx.x*blockDim.x;
+//	int line = threadIdx.y + blockIdx.y*blockDim.y;
+//
+//	while( line > 0 && line < size && column < line )
+//	{
+//		a[line + column*size] = 0;
+//		column += blockDim.x * gridDim.x;
+//		line += blockDim.y * gridDim.y;
+//	}
+//
+//	__syncthreads();
+//}
+//
+//__global__ void zeros_under_diag_kernel(double *a, __int32 size)
+//{    
+//	// index
+//	int column = threadIdx.x + blockIdx.x*blockDim.x;
+//	int line = threadIdx.y + blockIdx.y*blockDim.y;
+//
+//	while( line > 0 && line < size && column < line )
+//	{
+//		a[line + column*size] = 0;
+//		column += blockDim.x * gridDim.x;
+//		line += blockDim.y * gridDim.y;
+//	}
+//
+//	__syncthreads();
+//}
+//
+//__global__ void zeros_under_diag_kernel(ComplexFloat *a, __int32 size)
+//{    
+//	// index
+//	cuFloatComplex *aux;
+//	aux = (cuFloatComplex *)a;
+//	int column = threadIdx.x + blockIdx.x*blockDim.x;
+//	int line = threadIdx.y + blockIdx.y*blockDim.y;
+//
+//	while( line > 0 && line < size && column < line )
+//	{
+//		aux[line + column*size] = make_cuComplex( 0, 0 );
+//		column += blockDim.x * gridDim.x;
+//		line += blockDim.y * gridDim.y;
+//	}
+//
+//	__syncthreads();
+//}
+//
+//__global__ void zeros_under_diag_kernel(ComplexDouble *a, __int32 size)
+//{    
+//	// index
+//	cuDoubleComplex *aux;
+//	aux = (cuDoubleComplex *)a;
+//	int column = threadIdx.x + blockIdx.x*blockDim.x;
+//	int line = threadIdx.y + blockIdx.y*blockDim.y;
+//
+//	while( line > 0 && line < size && column < line )
+//	{
+//		aux[line + column*size] = make_cuDoubleComplex( 0, 0 );
+//		column += blockDim.x * gridDim.x;
+//		line += blockDim.y * gridDim.y;
+//	}
+//
+//	__syncthreads();
+//}
+
+// put zeros above the main diagonal of matrix
+
+template<> __global__ void zeros_above_diag_kernel(ComplexFloat *a, __int32 size)
+{    
+	// index
+	cuFloatComplex *aux;
+	aux = (cuFloatComplex *)a;
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line > 0 && line < size && column > line )
+	{
+		aux[line + column*size] = make_cuComplex( 0, 0 );
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
+template<> __global__ void zeros_above_diag_kernel(ComplexDouble *a, __int32 size)
+{    
+	// index
+	cuDoubleComplex *aux;
+	aux = (cuDoubleComplex *)a;
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line > 0 && line < size && column > line )
+	{
+		aux[line + column*size] = make_cuDoubleComplex( 0, 0 );
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
+template <typename T>
+__global__ void zeros_above_diag_kernel(T *a, __int32 size)
+{    
+	// index
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line > 0 && line < size && column > line )
+	{
+		a[line + column*size] = 0;
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
+template __global__ void zeros_above_diag_kernel(int *a, __int32 size);
+template __global__ void zeros_above_diag_kernel(float *a, __int32 size);
+template __global__ void zeros_above_diag_kernel(double *a, __int32 size);
 
 template <typename T>
 __host__ void zeros_above_diag(T *a, __int32 size)
@@ -1245,171 +1362,9 @@ template __host__ void zeros_above_diag( double *a, __int32 size );
 template __host__ void zeros_above_diag( ComplexFloat *a, __int32 size );
 template __host__ void zeros_above_diag( ComplexDouble *a, __int32 size );
 
-__global__ void zeros_above_diag_kernel(int *a, __int32 size)
-{    
-	// index
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
+// identity matrix 
 
-	while( line > 0 && line < size && column > line )
-	{
-		a[line + column*size] = 0;
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void zeros_above_diag_kernel(float *a, __int32 size)
-{    
-	// index
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line > 0 && line < size && column > line )
-	{
-		a[line + column*size] = 0;
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void zeros_above_diag_kernel(double *a, __int32 size)
-{    
-	// index
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line > 0 && line < size && column > line )
-	{
-		a[line + column*size] = 0;
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void zeros_above_diag_kernel(ComplexFloat *a, __int32 size)
-{    
-	// index
-	cuFloatComplex *aux;
-	aux = (cuFloatComplex *)a;
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line > 0 && line < size && column > line )
-	{
-		aux[line + column*size] = make_cuComplex( 0, 0 );
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void zeros_above_diag_kernel(ComplexDouble *a, __int32 size)
-{    
-	// index
-	cuDoubleComplex *aux;
-	aux = (cuDoubleComplex *)a;
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line > 0 && line < size && column > line )
-	{
-		aux[line + column*size] = make_cuDoubleComplex( 0, 0 );
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-template<> __host__ void cudaEye( ComplexFloat *a, __int32 size )
-{    
-	dim3 threadsPerBlock2( 32, 32 );
-	dim3 blocksPerGrid2( min( (size + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (size + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
-
-	//cudaEye_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
-	cudaEye_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( (cuFloatComplex *)a, size );
-	CUDA_CALL( cudaDeviceSynchronize() );
-}
-
-template<> __host__ void cudaEye( ComplexDouble *a, __int32 size )
-{    
-	dim3 threadsPerBlock2( 32, 32 );
-	dim3 blocksPerGrid2( min( (size + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (size + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
-
-	//cudaEye_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
-	cudaEye_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( (cuDoubleComplex *)a, size );
-	CUDA_CALL( cudaDeviceSynchronize() );
-}
-
-template <typename T>
-__host__ void cudaEye(T *a, __int32 size)
-{    
-	dim3 threadsPerBlock2( 32, 32 );
-	dim3 blocksPerGrid2( min( (size + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (size + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
-
-	//cudaEye_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
-	cudaEye_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
-	CUDA_CALL( cudaDeviceSynchronize() );
-}
-
-template __host__ void cudaEye( int *a, __int32 size );
-template __host__ void cudaEye( float *a, __int32 size );
-template __host__ void cudaEye( double *a, __int32 size );
-
-__global__ void cudaEye_kernel(int *a, __int32 size) 
-{
-	// index
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line >= 0 && line < size && column >= 0 && column < size ) {
-		a[line + column*size] = line == column;
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void cudaEye_kernel(float *a, __int32 size) 
-{
-	// index
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line >= 0 && line < size && column >= 0 && column < size ) {
-		a[line + column*size] = line == column;
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void cudaEye_kernel(double *a, __int32 size)
-{
-	// index
-	int column = threadIdx.x + blockIdx.x*blockDim.x;
-	int line = threadIdx.y + blockIdx.y*blockDim.y;
-
-	while( line >= 0 && line < size && column >= 0 && column < size ) {
-		a[line + column*size] = line == column;
-		column += blockDim.x * gridDim.x;
-		line += blockDim.y * gridDim.y;
-	}
-
-	__syncthreads();
-}
-
-__global__ void cudaEye_kernel(cuComplex *a, __int32 size)
+template<> __global__ void cuda_eye_kernel(cuComplex *a, __int32 size)
 {
 	// index
 	int column = threadIdx.x + blockIdx.x*blockDim.x;
@@ -1424,7 +1379,7 @@ __global__ void cudaEye_kernel(cuComplex *a, __int32 size)
 	__syncthreads();
 }
 
-__global__ void cudaEye_kernel(cuDoubleComplex *a, __int32 size)
+template<> __global__ void cuda_eye_kernel(cuDoubleComplex *a, __int32 size)
 {
 	// index
 	int column = threadIdx.x + blockIdx.x*blockDim.x;
@@ -1440,7 +1395,64 @@ __global__ void cudaEye_kernel(cuDoubleComplex *a, __int32 size)
 }
 
 template <typename T>
-__host__ T min_cuda( T *a, int *idx, __int32 size )
+__global__ void cuda_eye_kernel(T *a, __int32 size) 
+{
+	// index
+	int column = threadIdx.x + blockIdx.x*blockDim.x;
+	int line = threadIdx.y + blockIdx.y*blockDim.y;
+
+	while( line >= 0 && line < size && column >= 0 && column < size ) {
+		a[line + column*size] = line == column;
+		column += blockDim.x * gridDim.x;
+		line += blockDim.y * gridDim.y;
+	}
+
+	__syncthreads();
+}
+
+template __global__ void cuda_eye_kernel(int *a, __int32 size);
+template __global__ void cuda_eye_kernel(float *a, __int32 size); 
+template __global__ void cuda_eye_kernel(double *a, __int32 size);
+
+template<> __host__ void cuda_eye( ComplexFloat *a, __int32 size )
+{    
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (size + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (size + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	//cuda_eye_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
+	cuda_eye_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( (cuFloatComplex *)a, size );
+	CUDA_CALL( cudaDeviceSynchronize() );
+}
+
+template<> __host__ void cuda_eye( ComplexDouble *a, __int32 size )
+{    
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (size + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (size + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	//cuda_eye_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
+	cuda_eye_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( (cuDoubleComplex *)a, size );
+	CUDA_CALL( cudaDeviceSynchronize() );
+}
+
+template <typename T>
+__host__ void cuda_eye(T *a, __int32 size)
+{    
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (size + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (size + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	//cuda_eye_kernel<T> <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
+	cuda_eye_kernel <<< blocksPerGrid2, threadsPerBlock2 >>>( a, size );
+	CUDA_CALL( cudaDeviceSynchronize() );
+}
+
+template __host__ void cuda_eye( int *a, __int32 size );
+template __host__ void cuda_eye( float *a, __int32 size );
+template __host__ void cuda_eye( double *a, __int32 size );
+
+// min of Array
+
+template <typename T>
+__host__ T cuda_min( T *a, int *idx, __int32 size )
 {
 	thrust::device_ptr<T> dev_ptr = thrust::device_pointer_cast(a);
 
@@ -1450,11 +1462,13 @@ __host__ T min_cuda( T *a, int *idx, __int32 size )
 	return min_ptr[0];
 }
 
-template __host__ float min_cuda( float *a, index_t *idx, __int32 size );
-template __host__ double min_cuda( double *a, index_t *idx, __int32 size );
+template __host__ float cuda_min( float *a, index_t *idx, __int32 size );
+template __host__ double cuda_min( double *a, index_t *idx, __int32 size );
+
+// max of Array
 
 template <typename T>
-__host__ T max_cuda( T *a, int *idx, __int32 size )
+__host__ T cuda_max( T *a, int *idx, __int32 size )
 {
 	thrust::device_ptr<T> dev_ptr = thrust::device_pointer_cast(a);
 
@@ -1464,6 +1478,175 @@ __host__ T max_cuda( T *a, int *idx, __int32 size )
 	return max_ptr[0];
 }
 
-template __host__ float max_cuda( float *a, index_t *idx, __int32 size );
-template __host__ double max_cuda( double *a, index_t *idx, __int32 size );
+template __host__ float cuda_max( float *a, index_t *idx, __int32 size );
+template __host__ double cuda_max( double *a, index_t *idx, __int32 size );
 
+// elementwise multiplication
+
+template<> __global__ void cuda_elementwise_multiplication_kernel( cuFloatComplex *a, cuFloatComplex *b, cuFloatComplex *c, size_t N )
+{
+	// index
+	int idx = threadIdx.x + blockIdx.x*blockDim.x;
+	float r, i;
+	
+	while( idx >= 0 && idx < N ) {
+		r = a[idx].x*b[idx].x - a[idx].y*b[idx].y;
+		i = a[idx].x*b[idx].y + a[idx].y*b[idx].x;
+		c[idx] = make_cuFloatComplex(r,i);
+
+		idx += blockDim.x * gridDim.x;
+	}
+
+	__syncthreads();
+}
+
+template<> __global__ void cuda_elementwise_multiplication_kernel( cuDoubleComplex *a, cuDoubleComplex *b, cuDoubleComplex *c, size_t N )
+{
+	// index
+	int idx = threadIdx.x + blockIdx.x*blockDim.x;
+	double r, i;
+	
+	while( idx >= 0 && idx < N ) {
+		r = a[idx].x*b[idx].x - a[idx].y*b[idx].y;
+		i = a[idx].x*b[idx].y + a[idx].y*b[idx].x;
+		c[idx] = make_cuDoubleComplex(r,i);
+
+		idx += blockDim.x * gridDim.x;
+	}
+
+	__syncthreads();
+}
+
+template <typename T>
+__global__ void cuda_elementwise_multiplication_kernel( T *a, T *b, T *c, size_t N )
+{
+	// index
+	int idx = threadIdx.x + blockIdx.x*blockDim.x;
+
+	while( idx >= 0 && idx < N ) {
+		c[idx] = a[idx]*b[idx];
+
+		idx += blockDim.x * gridDim.x;
+	}
+
+	__syncthreads();
+}
+
+template __global__ void cuda_elementwise_multiplication_kernel( float *a, float *b, float *c, size_t N );
+template __global__ void cuda_elementwise_multiplication_kernel( double *a, double *b, double *c, size_t N );
+
+template<> __host__ void cuda_elementwise_multiplication( ComplexFloat *a, ComplexFloat *b, ComplexFloat *c, size_t N )
+{
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (N + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (N + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	cuda_elementwise_multiplication_kernel<<< blocksPerGrid2, threadsPerBlock2 >>>( (cuFloatComplex *)a, (cuFloatComplex *)b, (cuFloatComplex *)c, N );
+	CUDA_CALL( cudaDeviceSynchronize() );
+}
+
+template<> __host__ void cuda_elementwise_multiplication( ComplexDouble *a, ComplexDouble *b, ComplexDouble *c, size_t N )
+{
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (N + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (N + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	cuda_elementwise_multiplication_kernel<<< blocksPerGrid2, threadsPerBlock2 >>>( (cuDoubleComplex *)a, (cuDoubleComplex *)b, (cuDoubleComplex *)c, N );
+	CUDA_CALL( cudaDeviceSynchronize() );
+}
+
+template <typename T>
+__host__ void cuda_elementwise_multiplication( T *a, T *b, T *c, size_t N )
+{
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (N + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (N + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	cuda_elementwise_multiplication_kernel<<< blocksPerGrid2, threadsPerBlock2 >>>( a, b, c, N );
+	CUDA_CALL( cudaDeviceSynchronize() );
+}
+
+template __host__ void cuda_elementwise_multiplication( float *a, float *b, float *c, size_t N );
+template __host__ void cuda_elementwise_multiplication( double *a, double *b, double *c, size_t N );
+
+// elementwise division
+
+template<> __global__ void cuda_elementwise_division_kernel( cuFloatComplex *a, cuFloatComplex *b, cuFloatComplex *c, size_t N )
+{
+	// index
+	int idx = threadIdx.x + blockIdx.x*blockDim.x;
+	float r, i;
+	
+	while( idx >= 0 && idx < N ) {
+		r = (b[idx].x*a[idx].x + b[idx].y*a[idx].y)/(pow(a[idx].x,2) + pow(a[idx].y,2));
+		i = (b[idx].y*a[idx].x - b[idx].x*a[idx].y)/(pow(a[idx].x,2) + pow(a[idx].y,2));
+		c[idx] = make_cuFloatComplex(r,i);
+
+		idx += blockDim.x * gridDim.x;
+	}
+
+	__syncthreads();
+}
+
+template<> __global__ void cuda_elementwise_division_kernel( cuDoubleComplex *a, cuDoubleComplex *b, cuDoubleComplex *c, size_t N )
+{
+	// index
+	int idx = threadIdx.x + blockIdx.x*blockDim.x;
+	double r, i;
+	
+	while( idx >= 0 && idx < N ) {
+		r = (b[idx].x*a[idx].x + b[idx].y*a[idx].y)/(pow(a[idx].x,2) + pow(a[idx].y,2));
+		i = (b[idx].y*a[idx].x - b[idx].x*a[idx].y)/(pow(a[idx].x,2) + pow(a[idx].y,2));
+		c[idx] = make_cuDoubleComplex(r,i);
+
+		idx += blockDim.x * gridDim.x;
+	}
+
+	__syncthreads();
+}
+
+template <typename T>
+__global__ void cuda_elementwise_division_kernel( T *a, T *b, T *c, size_t N )
+{
+	// index
+	int idx = threadIdx.x + blockIdx.x*blockDim.x;
+
+	while( idx >= 0 && idx < N ) {
+		c[idx] = b[idx]/a[idx];
+
+		idx += blockDim.x * gridDim.x;
+	}
+
+	__syncthreads();
+}
+
+template __global__ void cuda_elementwise_division_kernel( float *a, float *b, float *c, size_t N );
+template __global__ void cuda_elementwise_division_kernel( double *a, double *b, double *c, size_t N );
+
+template<> __host__ void cuda_elementwise_division( ComplexFloat *a, ComplexFloat *b, ComplexFloat *c, size_t N )
+{
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (N + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (N + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	cuda_elementwise_division_kernel<<< blocksPerGrid2, threadsPerBlock2 >>>( (cuFloatComplex *)a, (cuFloatComplex *)b, (cuFloatComplex *)c, N );
+	CUDA_CALL( cudaDeviceSynchronize() );
+}
+
+template<> __host__ void cuda_elementwise_division( ComplexDouble *a, ComplexDouble *b, ComplexDouble *c, size_t N )
+{
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (N + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (N + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	cuda_elementwise_division_kernel<<< blocksPerGrid2, threadsPerBlock2 >>>( (cuDoubleComplex *)a, (cuDoubleComplex *)b, (cuDoubleComplex *)c, N );
+	CUDA_CALL( cudaDeviceSynchronize() );
+}
+
+template <typename T>
+__host__ void cuda_elementwise_division( T *a, T *b, T *c, size_t N )
+{
+	dim3 threadsPerBlock2( 32, 32 );
+	dim3 blocksPerGrid2( min( (N + threadsPerBlock2.x - 1)/threadsPerBlock2.x , 32 ), min( (N + threadsPerBlock2.y - 1)/threadsPerBlock2.y , 32 ) );
+
+	cuda_elementwise_division_kernel<<< blocksPerGrid2, threadsPerBlock2 >>>( a, b, c, N );
+	CUDA_CALL( cudaDeviceSynchronize() );
+}
+
+template __host__ void cuda_elementwise_division( float *a, float *b, float *c, size_t N );
+template __host__ void cuda_elementwise_division( double *a, double *b, double *c, size_t N );

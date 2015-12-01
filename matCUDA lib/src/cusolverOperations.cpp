@@ -110,7 +110,7 @@ namespace matCUDA
 		CUDA_CALL( cudaMalloc(&d_B, M * N * sizeof(TElement)) );
 
 		CUDA_CALL( cudaMemcpy(d_A, data->data(), M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
-		cudaEye<TElement>( d_B, minMN );
+		cuda_eye<TElement>( d_B, minMN );
 
 		int Lwork = 0;
 		CUSOLVER_CALL( cusolverDnTgetrf_bufferSize(&handle, M, N, d_A, M, &Lwork) );
@@ -198,7 +198,7 @@ namespace matCUDA
 		CUDA_CALL( cudaHostGetDevicePointer( &d_B, result->m_data.GetElements(), 0 ) );
 
 		CUDA_CALL( cudaMemcpy(d_A, data->data(), M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
-		cudaEye<TElement>( d_B, minMN );
+		cuda_eye<TElement>( d_B, minMN );
 
 		int Lwork = 0;
 		CUSOLVER_CALL( cusolverDnTgetrf_bufferSize(&handle, M, N, d_A, M, &Lwork) );
@@ -428,7 +428,7 @@ namespace matCUDA
 		// --- Initializing the output Q matrix (Of course, this step could be done by a kernel function directly on the device)
 		//*Q = eye<TElement> ( std::min(Q->getDim(0),Q->getDim(1)) );
 		CUDA_CALL( cudaMalloc(&d_Q, M*M*sizeof(TElement)) );
-		cudaEye<TElement>( d_Q, std::min(Q->getDim(0),Q->getDim(1)) );
+		cuda_eye<TElement>( d_Q, std::min(Q->getDim(0),Q->getDim(1)) );
 
 		// --- CUDA qr execution
 		CUSOLVER_CALL( cusolverDnTormqr(&handle, CUBLAS_SIDE_LEFT, CUBLAS_OP_N, M, N, std::min(M, N), d_A, M, TAU, d_Q, M, Workspace, Lwork, devInfo) );
@@ -633,7 +633,7 @@ namespace matCUDA
 
 		// --- Initializing the output Q matrix (Of course, this step could be done by a kernel function directly on the device)
 		//*Q = eye<TElement> ( std::min(Q->getDim(0),Q->getDim(1)) );
-		cudaEye<TElement>( d_Q, std::min(Q->getDim(0),Q->getDim(1)) );
+		cuda_eye<TElement>( d_Q, std::min(Q->getDim(0),Q->getDim(1)) );
 		CUDA_CALL( cudaDeviceSynchronize() );
 
 		// --- CUDA qr_zerocopy execution

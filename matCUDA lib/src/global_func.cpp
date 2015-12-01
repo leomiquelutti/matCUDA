@@ -23,7 +23,7 @@ namespace matCUDA
 		//}
 
 		// GPU version
-		cudaEye<TElement>( result.data(), N );
+		cuda_eye<TElement>( result.data(), N );
 
 		return result;
 	}

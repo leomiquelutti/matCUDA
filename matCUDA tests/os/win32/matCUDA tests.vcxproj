@@ -44,6 +44,7 @@
     <ClCompile Include="..\..\src\UnitTest19.cpp" />
     <ClCompile Include="..\..\src\UnitTest20.cpp" />
     <ClCompile Include="..\..\src\UnitTestDraft.cpp" />
+    <ClCompile Include="UnitTest21.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\matCUDA lib\os\win32\matCUDA.vcxproj">

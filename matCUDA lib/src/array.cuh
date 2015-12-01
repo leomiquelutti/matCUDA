@@ -72,31 +72,47 @@ cudaError_t determinant(T *c,
 template <typename T>
 __host__ void zeros_under_diag(T *a, __int32 size);
 
-__global__ void zeros_under_diag_kernel(float *a, __int32 size);
-__global__ void zeros_under_diag_kernel(double *a, __int32 size);
-__global__ void zeros_under_diag_kernel(cuComplex *a, __int32 size);
-__global__ void zeros_under_diag_kernel(cuDoubleComplex *a, __int32 size);
+template <typename T>
+__global__ void zeros_under_diag_kernel(T *a, __int32 size);
+
+//__global__ void zeros_under_diag_kernel(float *a, __int32 size);
+//__global__ void zeros_under_diag_kernel(double *a, __int32 size);
+//__global__ void zeros_under_diag_kernel(cuComplex *a, __int32 size);
+//__global__ void zeros_under_diag_kernel(cuDoubleComplex *a, __int32 size);
 
 template <typename T>
 __host__ void zeros_above_diag(T *a, __int32 size);
 
-__global__ void zeros_above_diag_kernel(float *a, __int32 size);
-__global__ void zeros_above_diag_kernel(double *a, __int32 size);
-__global__ void zeros_above_diag_kernel(cuComplex *a, __int32 size);
-__global__ void zeros_above_diag_kernel(cuDoubleComplex *a, __int32 size);
+template <typename T>
+__global__ void zeros_above_diag_kernel(T *a, __int32 size);
+
+//__global__ void zeros_above_diag_kernel(float *a, __int32 size);
+//__global__ void zeros_above_diag_kernel(double *a, __int32 size);
+//__global__ void zeros_above_diag_kernel(cuComplex *a, __int32 size);
+//__global__ void zeros_above_diag_kernel(cuDoubleComplex *a, __int32 size);
 
 template <typename T>
-__host__ void cudaEye(T *a, __int32 size);
-
-__global__ void cudaEye_kernel(float *a, __int32 size);
-__global__ void cudaEye_kernel(double *a, __int32 size);
-__global__ void cudaEye_kernel(cuComplex *a, __int32 size);
-__global__ void cudaEye_kernel(cuDoubleComplex *a, __int32 size);
+__host__ void cuda_eye(T *a, __int32 size);
 
 template <typename T>
-__host__ T min_cuda( T *a, int *idx, __int32 size );
+__global__ void cuda_eye_kernel(T *a, __int32 size);
 
 template <typename T>
-__host__ T max_cuda( T *a, int *idx, __int32 size );
+__host__ T cuda_min( T *a, int *idx, __int32 size );
+
+template <typename T>
+__host__ T cuda_max( T *a, int *idx, __int32 size );
+
+template <typename T>
+__host__ void cuda_elementwise_multiplication( T *a, T *b, T *c, size_t N );
+
+template <typename T>
+__global__ void cuda_elementwise_multiplication_kernel( T *a, T *b, T *c, size_t N );
+
+template <typename T>
+__host__ void cuda_elementwise_division( T *a, T *b, T *c, size_t N );
+
+template <typename T>
+__global__ void cuda_elementwise_division_kernel( T *a, T *b, T *c, size_t N );
 
 #endif

@@ -54,12 +54,12 @@ namespace matCUDA
 		~Array();
 	
 		// info from base classes
-		const ArrayData<TElement>* GetArrayData() const { return &m_data; }
-		ArrayDescriptor& GetDescriptor();
-		TElement *data() { return m_data.m_data; };
-		size_t			getDim( index_t dim ) { return this->GetDescriptor().GetDim( dim ); };
-		size_t			getNDim() { return this->GetDescriptor().GetNDim(); };
-		size_t			getNElements() { return (size_t)this->GetDescriptor().GetNumberOfElements(); };
+		TElement*					data() { return m_data.m_data; };
+		const ArrayData<TElement>*	GetArrayData() const { return &m_data; }
+		ArrayDescriptor&			GetDescriptor();
+		size_t						getDim( index_t dim ) { return this->GetDescriptor().GetDim( dim ); };
+		size_t						getNDim() { return this->GetDescriptor().GetNDim(); };
+		size_t						getNElements() { return (size_t)this->GetDescriptor().GetNumberOfElements(); };
 
 		// operators
 		bool operator == (Array<TElement> a);
@@ -97,6 +97,8 @@ namespace matCUDA
 		Array<TElement> detrend(); // gpu + cpu
 		Array<TElement> diff();
 		Array<TElement> eig( Array<TElement> *eigenvectors ); // gpu + cpu
+		Array<TElement> elementWiseDivide( Array<TElement> *A ); // gpu
+		Array<TElement> elementWiseMultiply( Array<TElement> *A ); // gpu
 		Array<TElement> fft(); // gpu
 		Array<TElement> getColumn( const index_t col );
 		Array<TElement> hermitian(); // gpu
@@ -122,10 +124,7 @@ namespace matCUDA
 
 		// TODO functions
 		Array<TElement> addColumn( Array<TElement> *col_to_add ); // TODO
-		void			Array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, int *cooColIndexHostPtr, TElement *cooValHostPtr ); 
-		Array<TElement> elementWiseAdd( Array<TElement> *A ); // TODO
-		Array<TElement> elementWiseDivide( Array<TElement> *A ); // TODO
-		Array<TElement> elementWiseMultiply( Array<TElement> *A ); // TODO
+		void			array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, int *cooColIndexHostPtr, TElement *cooValHostPtr ); 
 		Array<TElement> operator ^ (TElement a); // TODO
 		Array<TElement> roots(); // TODO
 		Array<TElement> sqrt(); // TODO
