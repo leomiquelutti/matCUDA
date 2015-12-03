@@ -225,7 +225,6 @@ void test_elementwise_division_double_1()
 	Array<double> control( size );
 	for( int i = 0; i < v1.getDim( 0 ); i++ )
 		control( i ) = v1(i)/v2(i);
-	
 	TEST_CALL( control, v1.elementWiseDivide( &v2 ), BOOST_CURRENT_FUNCTION );
 }
 

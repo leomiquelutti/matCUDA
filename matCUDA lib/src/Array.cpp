@@ -2545,12 +2545,30 @@ namespace matCUDA
 
 		Array<TElement> result( this->getDim( 0 ), this->getDim( 1 ) );
 
-		// pass host pointer to device
-		CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->m_data.GetElements(), 0 ) );
-		CUDA_CALL( cudaHostGetDevicePointer( &d_B, this->m_data.GetElements(), 0 ) );
-		CUDA_CALL( cudaHostGetDevicePointer( &d_result, result.m_data.GetElements(), 0 ) );
+		//// pass host pointer to device
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->m_data.GetElements(), 0 ) );
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_B, this->m_data.GetElements(), 0 ) );
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_result, result.m_data.GetElements(), 0 ) );
 
+		// allocate memory
+		CUDA_CALL( cudaMalloc<TElement>( &d_A, A->getNElements()*sizeof(TElement) ) );
+		CUDA_CALL( cudaMalloc<TElement>( &d_B, A->getNElements()*sizeof(TElement) ) );
+		CUDA_CALL( cudaMalloc<TElement>( &d_result, A->getNElements()*sizeof(TElement) ) );
+
+		// copy to device
+		CUDA_CALL( cudaMemcpy( (void*)d_A, A->data(), A->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
+		CUDA_CALL( cudaMemcpy( (void*)d_B, this->data(), this->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
+
+		// call function
 		cuda_elementwise_multiplication( d_A, d_B, d_result, A->getNElements() );
+
+		// copy to host
+		CUDA_CALL( cudaMemcpy( result.data(), d_result, A->getNElements()*sizeof(TElement), cudaMemcpyDeviceToHost ) );
+
+		// free memory
+		CUDA_CALL( cudaFree( d_A ) );
+		CUDA_CALL( cudaFree( d_B ) );
+		CUDA_CALL( cudaFree( d_result ) );
 
 		return result;
 	}
@@ -2572,12 +2590,30 @@ namespace matCUDA
 
 		Array<TElement> result( this->getDim( 0 ), this->getDim( 1 ) );
 
-		// pass host pointer to device
-		CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->m_data.GetElements(), 0 ) );
-		CUDA_CALL( cudaHostGetDevicePointer( &d_B, this->m_data.GetElements(), 0 ) );
-		CUDA_CALL( cudaHostGetDevicePointer( &d_result, result.m_data.GetElements(), 0 ) );
+		//// pass host pointer to device
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->m_data.GetElements(), 0 ) );
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_B, this->m_data.GetElements(), 0 ) );
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_result, result.m_data.GetElements(), 0 ) );
 
+		// allocate memory
+		CUDA_CALL( cudaMalloc<TElement>( &d_A, A->getNElements()*sizeof(TElement) ) );
+		CUDA_CALL( cudaMalloc<TElement>( &d_B, A->getNElements()*sizeof(TElement) ) );
+		CUDA_CALL( cudaMalloc<TElement>( &d_result, A->getNElements()*sizeof(TElement) ) );
+
+		// copy to device
+		CUDA_CALL( cudaMemcpy( (void*)d_A, A->data(), A->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
+		CUDA_CALL( cudaMemcpy( (void*)d_B, this->data(), this->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
+
+		// call function
 		cuda_elementwise_division( d_A, d_B, d_result, A->getNElements() );
+
+		// copy to host
+		CUDA_CALL( cudaMemcpy( result.data(), d_result, A->getNElements()*sizeof(TElement), cudaMemcpyDeviceToHost ) );
+
+		// free memory
+		CUDA_CALL( cudaFree( d_A ) );
+		CUDA_CALL( cudaFree( d_B ) );
+		CUDA_CALL( cudaFree( d_result ) );
 
 		return result;
 	}
