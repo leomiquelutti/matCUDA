@@ -114,6 +114,8 @@ namespace matCUDA
 		TElement		norm(); // gpu
 		void			print();
 		void			qr( Array<TElement> *Q, Array<TElement> *R ); // gpu
+		Array<TElement> removeCol( const index_t col );
+		Array<TElement> removeRow( const index_t row );
 		Array<TElement> sin();
 		Array<TElement> sind();
 		Array<TElement> submatrix( const index_t rowBegin, const index_t rowEnd, const index_t colBegin, const index_t colEnd ); // partial

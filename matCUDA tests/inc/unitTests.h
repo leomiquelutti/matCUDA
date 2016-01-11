@@ -468,6 +468,24 @@ void test_elementwise_division_complex_2();
 void test_elementwise_division_complex_3();
 void test_elementwise_division_complex_4();
 
+// UnitTest21.cpp
+void test_remove_row_int_1();
+void test_remove_row_int_2();
+void test_remove_row_float_1();
+void test_remove_row_float_2();
+void test_remove_row_double_1();
+void test_remove_row_double_2();
+void test_remove_row_complex_1();
+void test_remove_row_complex_2();
+void test_remove_col_int_1();
+void test_remove_col_int_2();
+void test_remove_col_float_1();
+void test_remove_col_float_2();
+void test_remove_col_double_1();
+void test_remove_col_double_2();
+void test_remove_col_complex_1();
+void test_remove_col_complex_2();
+
 // UnitTestDraft.cpp
 void draft();
 

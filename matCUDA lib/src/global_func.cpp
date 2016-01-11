@@ -61,7 +61,7 @@ namespace matCUDA
 	{
 		cufftResult_t stat = CUFFT_NOT_IMPLEMENTED;
 		cufftOperations<ComplexFloat> op;
-		Array<ComplexFloat> result( in->GetDescriptor().GetDim(0)/2+1, in->GetDescriptor().GetDim(1) );
+		Array<ComplexFloat> result( floor(in->GetDescriptor().GetDim(0)/2)+1, in->GetDescriptor().GetDim(1) );
 
 		try
 		{

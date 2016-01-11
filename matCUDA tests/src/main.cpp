@@ -428,6 +428,24 @@ init_unit_test_suite( int argc, char* argv[] )
 	ts1->add( BOOST_TEST_CASE( &test_elementwise_division_complex_3 ) );
 	ts1->add( BOOST_TEST_CASE( &test_elementwise_division_complex_4 ) );
 
+	// UnitTest21.cpp	
+	ts1->add( BOOST_TEST_CASE( &test_remove_row_int_1 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_row_int_2 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_row_float_1 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_row_float_2 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_row_double_1 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_row_double_2 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_row_complex_1 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_row_complex_2 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_col_int_1 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_col_int_2 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_col_float_1 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_col_float_2 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_col_double_1 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_col_double_2 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_col_complex_1 ) );
+	ts1->add( BOOST_TEST_CASE( &test_remove_col_complex_2 ) );
+
 	framework::master_test_suite().add( ts1 );
 
 	return 0;

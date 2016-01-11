@@ -2383,7 +2383,8 @@ namespace matCUDA
 
 		return result;
 	}
-
+	
+	template Array<int> Array<int>::submatrix( index_t rowBegin, index_t rowEnd, index_t colBegin, index_t colEnd );
 	template Array<float> Array<float>::submatrix( index_t rowBegin, index_t rowEnd, index_t colBegin, index_t colEnd );
 	template Array<double> Array<double>::submatrix( index_t rowBegin, index_t rowEnd, index_t colBegin, index_t colEnd );
 	template Array<ComplexFloat> Array<ComplexFloat>::submatrix( index_t rowBegin, index_t rowEnd, index_t colBegin, index_t colEnd );
@@ -2510,6 +2511,50 @@ namespace matCUDA
 
 	template Array<float> Array<float>::min( Array<float> *idx );
 	template Array<double> Array<double>::min( Array<double> *idx );
+
+	template <typename TElement>
+	Array<TElement> Array<TElement>::removeRow( const index_t row )
+	{
+		Array<TElement> result( this->getDim(0) - 1, this->getDim(1) );
+
+		size_t auxIdx = -1;
+		for( int irow = 0; irow < this->getDim(0); irow++ )
+			if( irow != row ) {
+				auxIdx++;
+				for( int icol = 0; icol < this->getDim(1); icol++ )
+					result( auxIdx, icol ) = (*this)(irow,icol);
+			}
+		
+		return result;
+	}
+	
+	template Array<int> Array<int>::removeRow( const index_t row );
+	template Array<float> Array<float>::removeRow( const index_t row );
+	template Array<double> Array<double>::removeRow( const index_t row );
+	template Array<ComplexFloat> Array<ComplexFloat>::removeRow( const index_t row );
+	template Array<ComplexDouble> Array<ComplexDouble>::removeRow( const index_t row );
+
+	template <typename TElement>
+	Array<TElement> Array<TElement>::removeCol( const index_t col )
+	{
+		Array<TElement> result( this->getDim(0), this->getDim(1) - 1 );
+
+		size_t auxIdx = -1;
+		for( int icol = 0; icol < this->getDim(1); icol++ )
+			if( icol != col ) { 
+				auxIdx++;
+				for( int irow = 0; irow < this->getDim(0); irow++ )
+						result( irow, auxIdx ) = (*this)(irow,icol);
+			}
+		
+		return result;
+	}
+	
+	template Array<int> Array<int>::removeCol( const index_t col );
+	template Array<float> Array<float>::removeCol( const index_t col );
+	template Array<double> Array<double>::removeCol( const index_t col );
+	template Array<ComplexFloat> Array<ComplexFloat>::removeCol( const index_t col );
+	template Array<ComplexDouble> Array<ComplexDouble>::removeCol( const index_t col );
 
 	// TODO
 	// find roots pf polynomial using bisection
