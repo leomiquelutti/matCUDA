@@ -28,6 +28,7 @@
     <ClCompile Include="..\..\src\curandOperations.cpp" />
     <ClCompile Include="..\..\src\cusolverOperations.cpp" />
     <ClCompile Include="..\..\src\global_func.cpp" />
+    <ClCompile Include="..\..\src\mixedOperations.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\inc\allocators.h" />

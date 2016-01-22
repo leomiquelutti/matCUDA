@@ -7,5 +7,6 @@
 #include "cufftOperations.h"
 #include "cusolverOperations.h"
 #include "curandOperations.h"
+#include "mixedOperations.h"
 
 #endif

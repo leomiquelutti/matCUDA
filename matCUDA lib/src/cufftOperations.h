@@ -10,7 +10,6 @@ namespace matCUDA
 	template <typename TElement>
 	class cufftOperations
 	{	
-		template <typename TElement> friend class Array;
 
 	public:
 

@@ -12,7 +12,7 @@
 #endif
 
 #ifndef EIG_MAX_ITER
-#define EIG_MAX_ITER 500
+#define EIG_MAX_ITER 50
 #endif
 
 namespace matCUDA
@@ -20,10 +20,10 @@ namespace matCUDA
 	template <typename TElement>
 	class cublasOperations
 	{	
-		template <typename TElement> friend class Array;
+		template <typename TElement> friend class mixedOperations;
 
 	public:
-
+		
 		// C = A x B
 		cublasStatus_t multiply( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C );
 		cublasStatus_t multiply_zerocopy( Array<TElement> *A, Array<TElement> *B, Array<TElement> *C ); // TODO

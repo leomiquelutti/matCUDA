@@ -68,7 +68,7 @@ namespace matCUDA
 			return CUSOLVER_STATUS_EXECUTION_FAILED;
 		}
 	
-		CUDA_CALL( cudaMemcpy( C->m_data.GetElements(), d_C, C->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( C->data(), d_C, C->getNElements()*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 		for( int i = 0; i< x->GetDescriptor().GetDim( 0 ); i++ ) {
 			for( int j = 0; j < x->GetDescriptor().GetDim( 1 ); j++ )
 				(*x)( i, j ) = (*C)( i, j );
@@ -159,7 +159,7 @@ namespace matCUDA
 			return CUSOLVER_STATUS_EXECUTION_FAILED;
 		}
 	
-		CUDA_CALL( cudaMemcpy( result->m_data.GetElements(), d_B, result->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( result->data(), d_B, result->getNElements()*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 
 		// free memory
 		CUDA_CALL( cudaFree( d_A ) );
@@ -195,7 +195,7 @@ namespace matCUDA
 		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
 
 		// pass host pointer to device
-		CUDA_CALL( cudaHostGetDevicePointer( &d_B, result->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &d_B, result->data(), 0 ) );
 
 		CUDA_CALL( cudaMemcpy(d_A, data->data(), M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
 		cuda_eye<TElement>( d_B, minMN );
@@ -295,7 +295,7 @@ namespace matCUDA
 		}
 	
 		Array<int> pivotVector( size_pivot );
-		CUDA_CALL( cudaMemcpy( lu->m_data.GetElements(), d_A, lu->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( lu->data(), d_A, lu->getNElements()*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 		CUDA_CALL( cudaMemcpy( pivotVector.data(), devIpiv, size_pivot*sizeof( int ), cudaMemcpyDeviceToHost ) );
 
 		from_permutation_vector_to_permutation_matrix( Pivot, &pivotVector );
@@ -368,7 +368,7 @@ namespace matCUDA
 			return CUSOLVER_STATUS_EXECUTION_FAILED;
 		}
 	
-		CUDA_CALL( cudaMemcpy( lu->m_data.GetElements(), d_A, lu->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( lu->data(), d_A, lu->getNElements()*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 
 		// free memory
 		CUDA_CALL( cudaFree( d_A ) );
@@ -399,7 +399,7 @@ namespace matCUDA
 		int minMN = std::min(M,N);
 
 		TElement *d_A, *h_A, *TAU, *Workspace, *d_Q;
-		h_A = A->m_data.GetElements();
+		h_A = A->data();
 		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
 		CUDA_CALL( cudaMemcpy(d_A, h_A, M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
 
@@ -420,7 +420,7 @@ namespace matCUDA
 			return CUSOLVER_STATUS_INTERNAL_ERROR;
 
 		// CALL CUDA FUNCTION
-		CUDA_CALL( cudaMemcpy( R->m_data.GetElements(), d_A, R->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( R->data(), d_A, R->getNElements()*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 		for(int j = 0; j < M; j++)
 			for(int i = j + 1; i < N; i++)
 				(*R)(i,j) = 0;
@@ -434,7 +434,7 @@ namespace matCUDA
 		CUSOLVER_CALL( cusolverDnTormqr(&handle, CUBLAS_SIDE_LEFT, CUBLAS_OP_N, M, N, std::min(M, N), d_A, M, TAU, d_Q, M, Workspace, Lwork, devInfo) );
 		
 		// --- At this point, d_Q contains the elements of Q. Showing this.
-		CUDA_CALL( cudaMemcpy(Q->m_data.GetElements(), d_Q, M*M*sizeof(TElement), cudaMemcpyDeviceToHost) );
+		CUDA_CALL( cudaMemcpy(Q->data(), d_Q, M*M*sizeof(TElement), cudaMemcpyDeviceToHost) );
 		CUDA_CALL( cudaDeviceSynchronize() );
   
 		CUSOLVER_CALL( cusolverDnDestroy(handle) );
@@ -564,7 +564,7 @@ namespace matCUDA
 
 		// copy from device to host
 		CUDA_CALL( cudaMemcpy( &mu, d_mu, (size_t)sizeof( TElement ), cudaMemcpyDeviceToHost ) );
-		CUDA_CALL( cudaMemcpy( eigenvector->m_data.GetElements(), d_eigenvector, (size_t)(N*sizeof( TElement )), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( eigenvector->data(), d_eigenvector, (size_t)(N*sizeof( TElement )), cudaMemcpyDeviceToHost ) );
 	
 		// destroy and free stuff
 		CUSPARSE_CALL( cusparseDestroyMatDescr( descrA ) );
@@ -599,7 +599,7 @@ namespace matCUDA
 		int minMN = std::min(M,N);
 
 		TElement *d_A, *h_A, *TAU, *Workspace, *d_Q, *d_R;
-		h_A = A->m_data.GetElements();
+		h_A = A->data();
 		CUDA_CALL( cudaMalloc(&d_A, M * N * sizeof(TElement)) );
 		CUDA_CALL( cudaMemcpy(d_A, h_A, M * N * sizeof(TElement), cudaMemcpyHostToDevice) );
 
@@ -620,11 +620,11 @@ namespace matCUDA
 			return CUSOLVER_STATUS_INTERNAL_ERROR;
 
 		// CALL CUDA FUNCTION
-		CUDA_CALL( cudaMemcpy( R->m_data.GetElements(), d_A, R->m_data.m_numElements*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( R->data(), d_A, R->getNElements()*sizeof( TElement ), cudaMemcpyDeviceToHost ) );
 
 		// pass host pointer to device
-		CUDA_CALL( cudaHostGetDevicePointer( &d_R, R->m_data.GetElements(), 0 ) );
-		CUDA_CALL( cudaHostGetDevicePointer( &d_Q, Q->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &d_R, R->data(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &d_Q, Q->data(), 0 ) );
 
 		zeros_under_diag<TElement>( d_R, std::min(R->getDim(0),R->getDim(1)) );
 		//for(int j = 0; j < M; j++)

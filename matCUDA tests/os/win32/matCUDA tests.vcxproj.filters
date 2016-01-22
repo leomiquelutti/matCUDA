@@ -86,10 +86,13 @@
     <ClCompile Include="..\..\src\UnitTestDraft.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UnitTest21.cpp">
+    <ClCompile Include="..\..\src\UnitTest21.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UnitTest22.cpp">
+    <ClCompile Include="..\..\src\UnitTest22.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\UnitTest23.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

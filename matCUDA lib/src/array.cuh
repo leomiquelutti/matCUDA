@@ -75,21 +75,11 @@ __host__ void zeros_under_diag(T *a, __int32 size);
 template <typename T>
 __global__ void zeros_under_diag_kernel(T *a, __int32 size);
 
-//__global__ void zeros_under_diag_kernel(float *a, __int32 size);
-//__global__ void zeros_under_diag_kernel(double *a, __int32 size);
-//__global__ void zeros_under_diag_kernel(cuComplex *a, __int32 size);
-//__global__ void zeros_under_diag_kernel(cuDoubleComplex *a, __int32 size);
-
 template <typename T>
 __host__ void zeros_above_diag(T *a, __int32 size);
 
 template <typename T>
 __global__ void zeros_above_diag_kernel(T *a, __int32 size);
-
-//__global__ void zeros_above_diag_kernel(float *a, __int32 size);
-//__global__ void zeros_above_diag_kernel(double *a, __int32 size);
-//__global__ void zeros_above_diag_kernel(cuComplex *a, __int32 size);
-//__global__ void zeros_above_diag_kernel(cuDoubleComplex *a, __int32 size);
 
 template <typename T>
 __host__ void cuda_eye(T *a, __int32 size);
@@ -109,10 +99,34 @@ __host__ void cuda_elementwise_multiplication( T *a, T *b, T *c, size_t N );
 template <typename T>
 __global__ void cuda_elementwise_multiplication_kernel( T *a, T *b, T *c, size_t N );
 
+// template version
 template <typename T>
 __host__ void cuda_elementwise_division( T *a, T *b, T *c, size_t N );
 
 template <typename T>
 __global__ void cuda_elementwise_division_kernel( T *a, T *b, T *c, size_t N );
+
+//// non template version
+//__host__ void cuda_elementwise_division( float *a, float *b, float *c, size_t N );
+//__host__ void cuda_elementwise_division( double *a, double *b, double *c, size_t N );
+//__host__ void cuda_elementwise_division( ComplexFloat *a, ComplexFloat *b, ComplexFloat *c, size_t N );
+//__host__ void cuda_elementwise_division( ComplexDouble *a, ComplexDouble *b, ComplexDouble *c, size_t N );
+//
+//__global__ void cuda_elementwise_division_kernel( float *a, float *b, float *c, size_t N );
+//__global__ void cuda_elementwise_division_kernel( double *a, double *b, double *c, size_t N );
+//__global__ void cuda_elementwise_division_kernel( ComplexFloat *a, ComplexFloat *b, ComplexFloat *c, size_t N );
+//__global__ void cuda_elementwise_division_kernel( ComplexDouble *a, ComplexDouble *b, ComplexDouble *c, size_t N );
+
+template <typename T>
+__host__ void cuda_abs( T *a, T *result, size_t N );
+
+template <typename T>
+__global__ void cuda_abs_kernel( T *a, T *result, size_t N );
+
+template <typename T>
+__host__ void cuda_abs2( T *a, T *result, size_t N );
+
+template <typename T>
+__global__ void cuda_abs2_kernel( T *a, T *result, size_t N );
 
 #endif

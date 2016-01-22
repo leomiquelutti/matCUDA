@@ -43,9 +43,10 @@
     <ClCompile Include="..\..\src\UnitTest18.cpp" />
     <ClCompile Include="..\..\src\UnitTest19.cpp" />
     <ClCompile Include="..\..\src\UnitTest20.cpp" />
+    <ClCompile Include="..\..\src\UnitTest21.cpp" />
+    <ClCompile Include="..\..\src\UnitTest22.cpp" />
+    <ClCompile Include="..\..\src\UnitTest23.cpp" />
     <ClCompile Include="..\..\src\UnitTestDraft.cpp" />
-    <ClCompile Include="UnitTest21.cpp" />
-    <ClCompile Include="UnitTest22.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\matCUDA lib\os\win32\matCUDA.vcxproj">
@@ -152,7 +153,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <Optimization>MaxSpeed</Optimization>
       <BrowseInformation>true</BrowseInformation>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

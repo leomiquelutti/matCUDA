@@ -2261,7 +2261,8 @@ namespace matCUDA
 		Array<TElement> result( this->GetDescriptor().GetDim( 0 ) );
 		Array<TElement> aux = *this;
 
-		cublasOperations<TElement> op;
+		cublasOperations<TElement> opCublas;
+		mixedOperations<TElement> opMixed;
 		cublasStatus_t stat;
 
 		if( m_data.m_numElements == 1)
@@ -2273,7 +2274,8 @@ namespace matCUDA
 
 		try
 		{
-			stat = op.eig( &aux, eigenvectors );
+			//stat = opCublas.eig( &aux, eigenvectors );
+			stat = opMixed.eig( &aux, eigenvectors );
 			if( stat != CUBLAS_STATUS_SUCCESS )
 				std::cout << "eigenvalues/eigenvectors calculation failed" << std::endl;
 			else
@@ -2605,7 +2607,7 @@ namespace matCUDA
 		CUDA_CALL( cudaMemcpy( (void*)d_B, this->data(), this->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
 
 		// call function
-		cuda_elementwise_multiplication( d_A, d_B, d_result, A->getNElements() );
+		cuda_elementwise_multiplication<TElement>( d_A, d_B, d_result, A->getNElements() );
 
 		// copy to host
 		CUDA_CALL( cudaMemcpy( result.data(), d_result, A->getNElements()*sizeof(TElement), cudaMemcpyDeviceToHost ) );
@@ -2623,6 +2625,54 @@ namespace matCUDA
 	template Array<ComplexFloat> Array<ComplexFloat>::elementWiseMultiply( Array<ComplexFloat> *A );
 	template Array<ComplexDouble> Array<ComplexDouble>::elementWiseMultiply( Array<ComplexDouble> *A );
 
+	//template <typename TElement>
+	//Array<TElement> Array<TElement>::elementWiseDivide( Array<TElement> *A )
+	//{
+	//	if (m_indexer->GetDescriptor().GetNDim() != A->m_indexer->GetDescriptor().GetNDim())
+	//		return *this;
+	//	else if(m_indexer->GetDescriptor().GetNumberOfElements() != A->getNElements())
+	//		return *this;		
+	//
+	//	TElement *d_A, *d_B, *d_result;
+	//
+	//	Array<TElement> result( this->getDim( 0 ), this->getDim( 1 ) );
+	//
+	//	// pass host pointer to device
+	//	CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->m_data.GetElements(), 0 ) );
+	//	CUDA_CALL( cudaHostGetDevicePointer( &d_B, this->m_data.GetElements(), 0 ) );
+	//	CUDA_CALL( cudaHostGetDevicePointer( &d_result, result.m_data.GetElements(), 0 ) );
+	//
+	//	//// allocate memory
+	//	//CUDA_CALL( cudaMalloc<TElement>( &d_A, A->getNElements()*sizeof(TElement) ) );
+	//	//CUDA_CALL( cudaMalloc<TElement>( &d_B, A->getNElements()*sizeof(TElement) ) );
+	//	//CUDA_CALL( cudaMalloc<TElement>( &d_result, A->getNElements()*sizeof(TElement) ) );
+	//
+	//	//// copy to device
+	//	//CUDA_CALL( cudaMemcpy( (void*)d_A, A->data(), A->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
+	//	//CUDA_CALL( cudaMemcpy( (void*)d_B, this->data(), this->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
+	//
+	//	// call function
+	//	//std::cout << A->getNElements() << std::endl;
+	//	//A->print();
+	//	//this->print();
+	//	cuda_elementwise_division<TElement>( d_A, d_B, d_result, A->getNElements() );
+	//
+	//	//// copy to host
+	//	//CUDA_CALL( cudaMemcpy( result.data(), d_result, A->getNElements()*sizeof(TElement), cudaMemcpyDeviceToHost ) );
+	//
+	//	//// free memory
+	//	//CUDA_CALL( cudaFree( d_A ) );
+	//	//CUDA_CALL( cudaFree( d_B ) );
+	//	//CUDA_CALL( cudaFree( d_result ) );
+	//
+	//	return result;
+	//}
+	//
+	//template Array<float> Array<float>::elementWiseDivide( Array<float> *A );
+	//template Array<double> Array<double>::elementWiseDivide( Array<double> *A );
+	//template Array<ComplexFloat> Array<ComplexFloat>::elementWiseDivide( Array<ComplexFloat> *A );
+	//template Array<ComplexDouble> Array<ComplexDouble>::elementWiseDivide( Array<ComplexDouble> *A );
+
 	template <typename TElement>
 	Array<TElement> Array<TElement>::elementWiseDivide( Array<TElement> *A )
 	{
@@ -2631,7 +2681,26 @@ namespace matCUDA
 		else if(m_indexer->GetDescriptor().GetNumberOfElements() != A->getNElements())
 			return *this;		
 
-		TElement *d_A, *d_B, *d_result;
+		Array<TElement> result( this->getDim( 0 ), this->getDim( 1 ) );
+
+		for( int i = 0; i < this->getDim( 0 ); i++ )
+			for( int j = 0; j < this->getDim( 1 ); j++ )
+				result( i, j ) = (*this)( i, j )/(*A)( i, j );
+
+		return result;
+	}
+
+	template Array<float> Array<float>::elementWiseDivide( Array<float> *A );
+	template Array<double> Array<double>::elementWiseDivide( Array<double> *A );
+	template Array<ComplexFloat> Array<ComplexFloat>::elementWiseDivide( Array<ComplexFloat> *A );
+	template Array<ComplexDouble> Array<ComplexDouble>::elementWiseDivide( Array<ComplexDouble> *A );
+
+	// implementation of abs
+
+	template <typename TElement>
+	Array<TElement> Array<TElement>::abs()
+	{
+		TElement *d_A, *d_result;
 
 		Array<TElement> result( this->getDim( 0 ), this->getDim( 1 ) );
 
@@ -2641,32 +2710,64 @@ namespace matCUDA
 		//CUDA_CALL( cudaHostGetDevicePointer( &d_result, result.m_data.GetElements(), 0 ) );
 
 		// allocate memory
-		CUDA_CALL( cudaMalloc<TElement>( &d_A, A->getNElements()*sizeof(TElement) ) );
-		CUDA_CALL( cudaMalloc<TElement>( &d_B, A->getNElements()*sizeof(TElement) ) );
-		CUDA_CALL( cudaMalloc<TElement>( &d_result, A->getNElements()*sizeof(TElement) ) );
+		CUDA_CALL( cudaMalloc<TElement>( &d_A, this->getNElements()*sizeof(TElement) ) );
+		CUDA_CALL( cudaMalloc<TElement>( &d_result, this->getNElements()*sizeof(TElement) ) );
 
 		// copy to device
-		CUDA_CALL( cudaMemcpy( (void*)d_A, A->data(), A->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
-		CUDA_CALL( cudaMemcpy( (void*)d_B, this->data(), this->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
+		CUDA_CALL( cudaMemcpy( (void*)d_A, this->data(), this->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
 
 		// call function
-		cuda_elementwise_division( d_A, d_B, d_result, A->getNElements() );
+		cuda_abs<TElement>( d_A, d_result, this->getNElements() );
 
 		// copy to host
-		CUDA_CALL( cudaMemcpy( result.data(), d_result, A->getNElements()*sizeof(TElement), cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( result.data(), d_result, this->getNElements()*sizeof(TElement), cudaMemcpyDeviceToHost ) );
 
 		// free memory
 		CUDA_CALL( cudaFree( d_A ) );
-		CUDA_CALL( cudaFree( d_B ) );
 		CUDA_CALL( cudaFree( d_result ) );
 
 		return result;
 	}
 
-	template Array<float> Array<float>::elementWiseDivide( Array<float> *A );
-	template Array<double> Array<double>::elementWiseDivide( Array<double> *A );
-	template Array<ComplexFloat> Array<ComplexFloat>::elementWiseDivide( Array<ComplexFloat> *A );
-	template Array<ComplexDouble> Array<ComplexDouble>::elementWiseDivide( Array<ComplexDouble> *A );
+	template Array<ComplexFloat> Array<ComplexFloat>::abs();
+	template Array<ComplexDouble> Array<ComplexDouble>::abs();
+
+	// implementation of abs2
+
+	template <typename TElement>
+	Array<TElement> Array<TElement>::abs2()
+	{
+		TElement *d_A, *d_result;
+
+		Array<TElement> result( this->getDim( 0 ), this->getDim( 1 ) );
+
+		//// pass host pointer to device
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_A, A->m_data.GetElements(), 0 ) );
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_B, this->m_data.GetElements(), 0 ) );
+		//CUDA_CALL( cudaHostGetDevicePointer( &d_result, result.m_data.GetElements(), 0 ) );
+
+		// allocate memory
+		CUDA_CALL( cudaMalloc<TElement>( &d_A, this->getNElements()*sizeof(TElement) ) );
+		CUDA_CALL( cudaMalloc<TElement>( &d_result, this->getNElements()*sizeof(TElement) ) );
+
+		// copy to device
+		CUDA_CALL( cudaMemcpy( (void*)d_A, this->data(), this->getNElements()*sizeof(TElement), cudaMemcpyHostToDevice ) );
+
+		// call function
+		cuda_abs2<TElement>( d_A, d_result, this->getNElements() );
+
+		// copy to host
+		CUDA_CALL( cudaMemcpy( result.data(), d_result, this->getNElements()*sizeof(TElement), cudaMemcpyDeviceToHost ) );
+
+		// free memory
+		CUDA_CALL( cudaFree( d_A ) );
+		CUDA_CALL( cudaFree( d_result ) );
+
+		return result;
+	}
+
+	template Array<ComplexFloat> Array<ComplexFloat>::abs2();
+	template Array<ComplexDouble> Array<ComplexDouble>::abs2();
 
 	void ArrayUtil::ReleaseArrayDescriptor(ArrayDescriptor &descriptor)
 	{

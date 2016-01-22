@@ -38,10 +38,6 @@ namespace matCUDA
 	template <typename TElement>
 	class Array
 	{
-		template <typename TElement> friend class cublasOperations;
-		template <typename TElement> friend class cufftOperations;
-		template <typename TElement> friend class curandOperations;
-		template <typename TElement> friend class cusolverOperations;
 	public:
 
 		Array(	ArrayDescriptor &descriptor,
@@ -82,6 +78,8 @@ namespace matCUDA
 
 
 		// functions
+		Array<TElement> abs();
+		Array<TElement> abs2();
 		Array<TElement> acos();
 		Array<TElement> acosd();
 		Array<TElement> asin();
@@ -98,7 +96,7 @@ namespace matCUDA
 		Array<TElement> diff();
 		Array<TElement> eig( Array<TElement> *eigenvectors ); // gpu + cpu
 		Array<TElement> elementWiseDivide( Array<TElement> *A ); // gpu
-		Array<TElement> elementWiseMultiply( Array<TElement> *A ); // gpu
+		Array<TElement> elementWiseMultiply( Array<TElement> *A ); // cpu - TODO (weird problem on GPU implementation!)
 		Array<TElement> fft(); // gpu
 		Array<TElement> getColumn( const index_t col );
 		Array<TElement> hermitian(); // gpu
@@ -152,10 +150,6 @@ namespace matCUDA
 		friend class ArrayUtil;
 		friend class LinearIndexer;
 		template <typename TElement> friend class Array;
-		template <typename TElement> friend class cublasOperations;
-		template <typename TElement> friend class cufftOperations;
-		template <typename TElement> friend class curandOperations;
-		template <typename TElement> friend class cusolverOperations;
 
 	public:
 		ArrayDescriptor(int count);
@@ -180,10 +174,6 @@ namespace matCUDA
 	class ArrayData
 	{
 		template <typename TElement> friend class Array;
-		template <typename TElement> friend class cublasOperations;
-		template <typename TElement> friend class cufftOperations;
-		template <typename TElement> friend class curandOperations;
-		template <typename TElement> friend class cusolverOperations;
 
 	public:
 		ArrayData(	ArrayDescriptor &descriptor,

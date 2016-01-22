@@ -20,7 +20,7 @@ namespace matCUDA
 		CUDA_CALL( cudaMalloc((void**)&dataIn, size_in) );
 		CUDA_CALL( cudaMalloc((void**)&dataOut, size_out) );
 
-		CUDA_CALL( cudaMemcpy( dataIn, in->m_data.GetElements(), size_in, cudaMemcpyHostToDevice ) );
+		CUDA_CALL( cudaMemcpy( dataIn, in->data(), size_in, cudaMemcpyHostToDevice ) );
 
 		CUFFT_CALL( cufftCreate( &plan ) );
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_C2C, BATCH, workSize ) ); 
@@ -29,7 +29,7 @@ namespace matCUDA
 
 		CUDA_CALL( cudaThreadSynchronize() );
 
-		CUDA_CALL( cudaMemcpy( out->m_data.GetElements(), dataOut, size_out, cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( out->data(), dataOut, size_out, cudaMemcpyDeviceToHost ) );
 
 		CUFFT_CALL( cufftDestroy(plan) );
 
@@ -55,7 +55,7 @@ namespace matCUDA
 		CUDA_CALL( cudaMalloc((void**)&dataIn, size_in) );
 		CUDA_CALL( cudaMalloc((void**)&dataOut, size_out) );
 
-		CUDA_CALL( cudaMemcpy( dataIn, in->m_data.GetElements(), size_in, cudaMemcpyHostToDevice ) );
+		CUDA_CALL( cudaMemcpy( dataIn, in->data(), size_in, cudaMemcpyHostToDevice ) );
 
 		CUFFT_CALL( cufftCreate( &plan ) );
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_Z2Z, BATCH, workSize ) ); 
@@ -64,7 +64,7 @@ namespace matCUDA
 
 		CUDA_CALL( cudaThreadSynchronize() );
 
-		CUDA_CALL( cudaMemcpy( out->m_data.GetElements(), dataOut, size_out, cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( out->data(), dataOut, size_out, cudaMemcpyDeviceToHost ) );
 
 		CUFFT_CALL( cufftDestroy(plan) );
 
@@ -101,7 +101,7 @@ namespace matCUDA
 		CUDA_CALL( cudaMalloc((void**)&dataIn, size_in) );
 		CUDA_CALL( cudaMalloc((void**)&dataOut, size_out) );
 
-		CUDA_CALL( cudaMemcpy( dataIn, in->m_data.GetElements(), size_in, cudaMemcpyHostToDevice ) );
+		CUDA_CALL( cudaMemcpy( dataIn, in->data(), size_in, cudaMemcpyHostToDevice ) );
 
 		CUFFT_CALL( cufftCreate( &plan ) );
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_R2C, BATCH, workSize ) ); 
@@ -110,7 +110,7 @@ namespace matCUDA
 
 		CUDA_CALL( cudaThreadSynchronize() );
 
-		CUDA_CALL( cudaMemcpy( out->m_data.GetElements(), dataOut, size_out, cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( out->data(), dataOut, size_out, cudaMemcpyDeviceToHost ) );
 
 		CUFFT_CALL( cufftDestroy(plan) );
 
@@ -137,7 +137,7 @@ namespace matCUDA
 		CUDA_CALL( cudaMalloc((void**)&dataIn, size_in) );
 		CUDA_CALL( cudaMalloc((void**)&dataOut, size_out) );
 
-		CUDA_CALL( cudaMemcpy( dataIn, in->m_data.GetElements(), size_in, cudaMemcpyHostToDevice ) );
+		CUDA_CALL( cudaMemcpy( dataIn, in->data(), size_in, cudaMemcpyHostToDevice ) );
 
 		CUFFT_CALL( cufftCreate( &plan ) );
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_D2Z, BATCH, workSize ) ); 
@@ -146,7 +146,7 @@ namespace matCUDA
 
 		CUDA_CALL( cudaThreadSynchronize() );
 
-		CUDA_CALL( cudaMemcpy( out->m_data.GetElements(), dataOut, size_out, cudaMemcpyDeviceToHost ) );
+		CUDA_CALL( cudaMemcpy( out->data(), dataOut, size_out, cudaMemcpyDeviceToHost ) );
 
 		CUFFT_CALL( cufftDestroy(plan) );
 
@@ -171,8 +171,8 @@ namespace matCUDA
 		size_t workSize[1];
 	
 		// pass host pointer to device
-		CUDA_CALL( cudaHostGetDevicePointer( &dataIn, in->m_data.GetElements(), 0 ) );
-		CUDA_CALL( cudaHostGetDevicePointer( &dataOut, out->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &dataIn, in->data(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &dataOut, out->data(), 0 ) );
 
 		CUFFT_CALL( cufftCreate( &plan ) );
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_C2C, BATCH, workSize ) ); 
@@ -200,8 +200,8 @@ namespace matCUDA
 		size_t workSize[1];
 	
 		// pass host pointer to device
-		CUDA_CALL( cudaHostGetDevicePointer( &dataIn, in->m_data.GetElements(), 0 ) );
-		CUDA_CALL( cudaHostGetDevicePointer( &dataOut, out->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &dataIn, in->data(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &dataOut, out->data(), 0 ) );
 
 		CUFFT_CALL( cufftCreate( &plan ) );
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_Z2Z, BATCH, workSize ) ); 
@@ -240,8 +240,8 @@ namespace matCUDA
 		size_t workSize[1];
 	
 		// pass host pointer to device
-		CUDA_CALL( cudaHostGetDevicePointer( &dataIn, in->m_data.GetElements(), 0 ) );
-		CUDA_CALL( cudaHostGetDevicePointer( &dataOut, out->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &dataIn, in->data(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &dataOut, out->data(), 0 ) );
 
 		CUFFT_CALL( cufftCreate( &plan ) );
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_R2C, BATCH, workSize ) ); 
@@ -270,8 +270,8 @@ namespace matCUDA
 		size_t workSize[1];
 	
 		// pass host pointer to device
-		CUDA_CALL( cudaHostGetDevicePointer( &dataIn, in->m_data.GetElements(), 0 ) );
-		CUDA_CALL( cudaHostGetDevicePointer( &dataOut, out->m_data.GetElements(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &dataIn, in->data(), 0 ) );
+		CUDA_CALL( cudaHostGetDevicePointer( &dataOut, out->data(), 0 ) );
 
 		CUFFT_CALL( cufftCreate( &plan ) );
 		CUFFT_CALL( cufftMakePlan1d( plan, NX, CUFFT_D2Z, BATCH, workSize ) ); 

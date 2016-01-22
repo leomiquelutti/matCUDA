@@ -11,7 +11,7 @@ namespace matCUDA
 	template <typename TElement>
 	class cusolverOperations
 	{	
-		template <typename TElement> friend class Array;
+		template <typename TElement> friend class mixedOperations;
 
 	public:
 		
