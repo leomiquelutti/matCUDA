@@ -94,9 +94,8 @@ namespace matCUDA
 		TElement		determinant(); // gpu
 		Array<TElement> detrend(); // gpu + cpu
 		Array<TElement> diff();
-		Array<TElement> eig( Array<TElement> *eigenvectors ); // gpu + cpu
-		Array<TElement> elementWiseDivide( Array<TElement> *A ); // gpu
-		Array<TElement> elementWiseMultiply( Array<TElement> *A ); // cpu - TODO (weird problem on GPU implementation!)
+		Array<TElement> elementWiseDivide( Array<TElement> *A ); // cpu - TODO (weird problem on GPU implementation!)
+		Array<TElement> elementWiseMultiply( Array<TElement> *A ); // gpu
 		Array<TElement> fft(); // gpu
 		Array<TElement> getColumn( const index_t col );
 		Array<TElement> hermitian(); // gpu
@@ -125,6 +124,7 @@ namespace matCUDA
 		// TODO functions
 		Array<TElement> addColumn( Array<TElement> *col_to_add ); // TODO
 		void			array2cuSparseCooMatrix( int n, int nnz, int *cooRowIndexHostPtr, int *cooColIndexHostPtr, TElement *cooValHostPtr ); 
+		Array<TElement> eig( Array<TElement> *eigenvectors ); // gpu + cpu
 		Array<TElement> operator ^ (TElement a); // TODO
 		Array<TElement> roots(); // TODO
 		Array<TElement> sqrt(); // TODO
@@ -237,30 +237,30 @@ namespace matCUDA
 	};
 
 	template <typename TElement>
-	Array<TElement> eye( index_t N );
+	Array<TElement>			dpss( index_t N, double NW, index_t degree );
 
 	template <typename TElement>
-	Array<TElement> dpss( index_t N, double NW, index_t degree );
-
-	Array<ComplexFloat> fft( Array<float> *in );
-	Array<ComplexDouble> fft( Array<double> *in );
+	Array<TElement>			eye( index_t N );
+	
+	template <typename TElement>
+	Array<std::complex<TElement>>		fft( Array<TElement> *in );
 
 	template <typename TElement>
-	Array<TElement> read_file_vector( std::string s );
+	Array<TElement>			rand(index_t u);
 
 	template <typename TElement>
-	Array<TElement> read_file_matrix( std::string s );
+	Array<TElement>			rand(index_t u1, index_t u2);
 
 	template <typename TElement>
-	Array<TElement> rand(index_t u);
+	Array<TElement>			read_file_vector( std::string s );
 
 	template <typename TElement>
-	Array<TElement> rand(index_t u1, index_t u2);
+	Array<TElement>			read_file_matrix( std::string s );
 
 	// measure time and print
-	void tic();
-	void toc();
-	long double toc( long double in );
+	void					tic();
+	void					toc();
+	long double				toc( long double in );
 
 	Array<ComplexFloat> Array_S2C( Array<float> ); // TODO
 	Array<ComplexDouble> Array_D2Z( Array<double> ); // TODO

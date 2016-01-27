@@ -105,6 +105,31 @@ void draft()
 	eigvec.print();
 }
 
+//#include <matCUDA.h>
+//void example_01()
+//{
+//     size_t N = 1024;
+// 
+//     // creates float-vector with N elements
+//     Array<float> v1( N );
+//
+//     // creates double-matrix with N x N elements
+//	 Array<float> m1( N, N ); 
+//
+//     // creates std::complex<double>-hypermatrix
+//	 // with N x N x N x N elements
+//	 Array<ComplexDouble> m2( N, N, N, N ); 
+//	
+//	 // fills in v1 and m1 with random numbers
+//	 v1 = rand<float>( N );
+//	 m1 = rand<float>( N, N );
+//
+//	 // creates v2 with same type, dimensions
+//	 // and element-values as m1*v1, which 
+//	 // has the same dimensions as v1
+//	 Array<float> v2 = m1*v1; 
+//}
+
 
 //void draft()
 //{	

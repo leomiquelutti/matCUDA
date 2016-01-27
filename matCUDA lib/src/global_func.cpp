@@ -57,11 +57,48 @@ namespace matCUDA
 	template Array<float> dpss( index_t N, double NW, index_t degree );
 	template Array<double> dpss( index_t N, double NW, index_t degree );
 
-	Array<ComplexFloat> fft( Array<float> *in )
+	//Array<ComplexFloat> fft( Array<float> *in )
+	//{
+	//	cufftResult_t stat = CUFFT_NOT_IMPLEMENTED;
+	//	cufftOperations<ComplexFloat> op;
+	//	Array<ComplexFloat> result( floor(in->GetDescriptor().GetDim(0)/2)+1, in->GetDescriptor().GetDim(1) );
+	//
+	//	try
+	//	{
+	//		stat = op.fft_stream( in, &result );
+	//	}
+	//	catch(std::exception &e)
+	//	{
+	//		std::cerr << boost::diagnostic_information(e);
+	//	}
+	//
+	//	return result;
+	//}
+	//
+	//Array<ComplexDouble> fft( Array<double> *in )
+	//{
+	//	cufftResult_t stat = CUFFT_NOT_IMPLEMENTED;
+	//	cufftOperations<ComplexDouble> op;
+	//	Array<ComplexDouble> result( in->GetDescriptor().GetDim(0)/2+1, in->GetDescriptor().GetDim(1) );
+	//
+	//	try
+	//	{
+	//		stat = op.fft_stream( in, &result );
+	//	}
+	//	catch(std::exception &e)
+	//	{
+	//		std::cerr << boost::diagnostic_information(e);
+	//	}
+	//
+	//	return result;
+	//}
+
+	template<typename TElement>
+	Array<std::complex<TElement>> fft( Array<TElement> *in )
 	{
 		cufftResult_t stat = CUFFT_NOT_IMPLEMENTED;
-		cufftOperations<ComplexFloat> op;
-		Array<ComplexFloat> result( floor(in->GetDescriptor().GetDim(0)/2)+1, in->GetDescriptor().GetDim(1) );
+		cufftOperations<std::complex<TElement>> op;
+		Array<std::complex<TElement>> result( floor(in->GetDescriptor().GetDim(0)/2)+1, in->GetDescriptor().GetDim(1) );
 
 		try
 		{
@@ -75,23 +112,8 @@ namespace matCUDA
 		return result;
 	}
 
-	Array<ComplexDouble> fft( Array<double> *in )
-	{
-		cufftResult_t stat = CUFFT_NOT_IMPLEMENTED;
-		cufftOperations<ComplexDouble> op;
-		Array<ComplexDouble> result( in->GetDescriptor().GetDim(0)/2+1, in->GetDescriptor().GetDim(1) );
-
-		try
-		{
-			stat = op.fft_stream( in, &result );
-		}
-		catch(std::exception &e)
-		{
-			std::cerr << boost::diagnostic_information(e);
-		}
-	
-		return result;
-	}
+	template Array<std::complex<float>> fft( Array<float> *in );
+	template Array<std::complex<double>> fft( Array<double> *in );
 
 	// read files for unit tests
 	template<> Array<ComplexFloat> read_file_vector( std::string s )
